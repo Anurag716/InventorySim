@@ -1,11 +1,30 @@
-﻿@{
+﻿@model IEnumerable<Inventory.Models.Role>
+
+@{
     ViewData["Title"] = "Database Test";
 }
 
 <div class="container mt-5">
-    <h2>Database Connection Test</h2>
+    <h2>EF Core Database Test</h2>
 
     <h3>@ViewBag.Status</h3>
-
     <p>@ViewBag.Message</p>
+
+    <h4>Roles</h4>
+
+    <ul>
+        @foreach (var role in Model)
+        {
+            <li>
+                <strong>@role.RoleName</strong>
+
+                <ul>
+                    @foreach (var user in role.Users)
+                    {
+                        <li>@user.Username</li>
+                    }
+                </ul>
+            </li>
+        }
+    </ul>
 </div>

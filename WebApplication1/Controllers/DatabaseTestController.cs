@@ -1,5 +1,6 @@
 ﻿using Inventory.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Controllers
 {
@@ -16,26 +17,22 @@ namespace Inventory.Controllers
         {
             try
             {
-                bool connected = _context.Database.CanConnect();
+                var roles = _context.Roles
+                            .Include(r => r.Users)
+                             .ToList();
 
-                if (connected)
-                {
-                    ViewBag.Status = "SUCCESS";
-                    ViewBag.Message = "Database connection successful!";
-                }
-                else
-                {
-                    ViewBag.Status = "FAILED";
-                    ViewBag.Message = "Could not connect to the database.";
-                }
+                ViewBag.Status = "SUCCESS";
+                ViewBag.Message = $"EF Core successfully retrieved {roles.Count} roles.";
+
+                return View(roles);
             }
             catch (Exception ex)
             {
                 ViewBag.Status = "ERROR";
                 ViewBag.Message = ex.Message;
-            }
 
-            return View();
+                return View();
+            }
         }
     }
 }
