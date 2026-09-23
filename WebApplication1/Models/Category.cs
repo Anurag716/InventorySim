@@ -19,7 +19,6 @@ public partial class Category
     [StringLength(500)]
     public string? Description { get; set; }
 
-    [Required]
     public bool? IsActive { get; set; }
 
     [Column(TypeName = "datetime")]

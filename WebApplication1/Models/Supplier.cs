@@ -27,7 +27,6 @@ public partial class Supplier
     [StringLength(500)]
     public string? Address { get; set; }
 
-    [Required]
     public bool? IsActive { get; set; }
 
     [Column(TypeName = "datetime")]
