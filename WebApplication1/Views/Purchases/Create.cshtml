@@ -1,0 +1,601 @@
+﻿@model Inventory.ViewModels.PurchaseCreateViewModel
+
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Create Purchase";
+
+    var productData = Model.Products.Select(product => new
+    {
+        value = product.ProductId,
+        text = product.ProductName + " (" + product.Sku + ")",
+        purchasePrice = product.PurchasePrice
+    });
+}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Create Purchase</h2>
+
+    <form asp-action="Create"
+          method="post"
+          id="purchaseForm">
+
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly"
+             class="text-danger mb-3">
+        </div>
+
+        <!-- Supplier -->
+        <div class="mb-3">
+
+            <label asp-for="SupplierId"
+                   class="form-label">
+                Supplier
+            </label>
+
+            <select asp-for="SupplierId"
+                    asp-items="Model.Suppliers"
+                    class="form-select">
+
+                <option value="">
+                    -- Select Supplier --
+                </option>
+
+            </select>
+
+            <span asp-validation-for="SupplierId"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+
+        <!-- Purchase Date -->
+        <div class="mb-3">
+
+            <label asp-for="PurchaseDate"
+                   class="form-label">
+                Purchase Date
+            </label>
+
+            <input asp-for="PurchaseDate"
+                   type="date"
+                   class="form-control" />
+
+            <span asp-validation-for="PurchaseDate"
+                  class="text-danger">
+            </span>
+
+        </div>
+
+
+        <hr />
+
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <h4>Purchase Items</h4>
+
+            <button type="button"
+                    id="addItemButton"
+                    class="btn btn-primary">
+
+                Add Product
+
+            </button>
+
+        </div>
+
+
+        <!-- Product rows -->
+        <div id="itemsContainer">
+
+            @if (Model.Items != null && Model.Items.Count > 0)
+            {
+                for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    <div class="purchase-item border rounded p-3 mb-3">
+
+                        <div class="row">
+
+                            <!-- Product -->
+                            <div class="col-md-5 mb-3">
+
+                                <label class="form-label">
+                                    Product
+                                </label>
+
+                                <select name="Items[@i].ProductId"
+                                        class="form-select product-select">
+
+                                    <option value="">
+                                        -- Select Product --
+                                    </option>
+
+                                    @foreach (var product in Model.Products)
+                                    {
+                                        <option value="@product.ProductId"
+                                                data-purchase-price="@product.PurchasePrice"
+                                                selected="@(product.ProductId == Model.Items[i].ProductId)">
+
+                                            @product.ProductName (@product.Sku)
+
+                                        </option>
+                                    }
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- Quantity -->
+                            <div class="col-md-2 mb-3">
+
+                                <label class="form-label">
+                                    Quantity
+                                </label>
+
+                                <input type="number"
+                                       name="Items[@i].Quantity"
+                                       value="@Model.Items[i].Quantity"
+                                       min="1"
+                                       class="form-control quantity-input" />
+
+                            </div>
+
+
+                            <!-- Unit Price -->
+                            <div class="col-md-3 mb-3">
+
+                                <label class="form-label">
+                                    Unit Price
+                                </label>
+
+                                <input type="number"
+                                       name="Items[@i].UnitPrice"
+                                       value="@Model.Items[i].UnitPrice"
+                                       min="0.01"
+                                       step="0.01"
+                                       class="form-control price-input" />
+
+                                <small class="text-muted">
+                                    Automatically filled from product purchase price.
+                                    You can change it if needed.
+                                </small>
+
+                            </div>
+
+
+                            <!-- Remove -->
+                            <div class="col-md-2 mb-3 d-flex align-items-end">
+
+                                <button type="button"
+                                        class="btn btn-danger remove-item w-100">
+
+                                    Remove
+
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                }
+            }
+
+        </div>
+
+
+        <!-- Total -->
+        <div class="mb-4">
+
+            <h5>
+                Total:
+                ₹<span id="grandTotal">0.00</span>
+            </h5>
+
+        </div>
+
+
+        <button type="submit"
+                class="btn btn-success">
+
+            Save Purchase
+
+        </button>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+
+            Cancel
+
+        </a>
+
+    </form>
+
+</div>
+
+
+<script>
+
+    let itemIndex = @Model.Items.Count;
+
+
+    // Product information supplied by the server.
+    const products =
+        @Html.Raw(JsonSerializer.Serialize(productData));
+
+
+    const itemsContainer =
+        document.getElementById("itemsContainer");
+
+    const addItemButton =
+        document.getElementById("addItemButton");
+
+    const grandTotal =
+        document.getElementById("grandTotal");
+
+    const purchaseForm =
+        document.getElementById("purchaseForm");
+
+
+    // Add new product row
+    addItemButton.addEventListener("click", function () {
+
+        addItemRow();
+
+    });
+
+
+    // Create a new purchase item row
+    function addItemRow() {
+
+        let productOptions =
+            '<option value="">-- Select Product --</option>';
+
+
+        products.forEach(function (product) {
+
+            productOptions +=
+                `<option
+                    value="${product.value}"
+                    data-purchase-price="${product.purchasePrice}">
+                    ${product.text}
+                </option>`;
+
+        });
+
+
+        const row =
+            document.createElement("div");
+
+
+        row.className =
+            "purchase-item border rounded p-3 mb-3";
+
+
+        row.innerHTML = `
+
+            <div class="row">
+
+                <!-- Product -->
+
+                <div class="col-md-5 mb-3">
+
+                    <label class="form-label">
+                        Product
+                    </label>
+
+                    <select
+                        name="Items[${itemIndex}].ProductId"
+                        class="form-select product-select">
+
+                        ${productOptions}
+
+                    </select>
+
+                </div>
+
+
+                <!-- Quantity -->
+
+                <div class="col-md-2 mb-3">
+
+                    <label class="form-label">
+                        Quantity
+                    </label>
+
+                    <input
+                        type="number"
+                        name="Items[${itemIndex}].Quantity"
+                        min="1"
+                        value="1"
+                        class="form-control quantity-input" />
+
+                </div>
+
+
+                <!-- Unit Price -->
+
+                <div class="col-md-3 mb-3">
+
+                    <label class="form-label">
+                        Unit Price
+                    </label>
+
+                    <input
+                        type="number"
+                        name="Items[${itemIndex}].UnitPrice"
+                        min="0.01"
+                        step="0.01"
+                        class="form-control price-input" />
+
+                    <small class="text-muted">
+                        Automatically filled from product purchase price.
+                        You can change it if needed.
+                    </small>
+
+                </div>
+
+
+                <!-- Remove -->
+
+                <div class="col-md-2 mb-3 d-flex align-items-end">
+
+                    <button
+                        type="button"
+                        class="btn btn-danger remove-item w-100">
+
+                        Remove
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        itemsContainer.appendChild(row);
+
+        itemIndex++;
+
+        updateTotal();
+
+    }
+
+
+    // When product changes,
+    // automatically fill Unit Price.
+    itemsContainer.addEventListener(
+        "change",
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    "product-select"
+                )
+            ) {
+
+                const selectedOption =
+                    event.target.options[
+                        event.target.selectedIndex
+                    ];
+
+
+                const purchasePrice =
+                    selectedOption.dataset.purchasePrice;
+
+
+                const row =
+                    event.target.closest(
+                        ".purchase-item"
+                    );
+
+
+                const priceInput =
+                    row.querySelector(
+                        ".price-input"
+                    );
+
+
+                if (
+                    purchasePrice !== undefined &&
+                    purchasePrice !== ""
+                ) {
+
+                    priceInput.value =
+                        parseFloat(
+                            purchasePrice
+                        ).toFixed(2);
+
+                }
+                else {
+
+                    priceInput.value = "";
+
+                }
+
+
+                updateTotal();
+
+            }
+
+        }
+    );
+
+
+    // Remove product row
+    itemsContainer.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    "remove-item"
+                )
+            ) {
+
+                event.target
+                    .closest(".purchase-item")
+                    .remove();
+
+                updateTotal();
+
+            }
+
+        }
+    );
+
+
+    // Calculate total when quantity or price changes.
+    itemsContainer.addEventListener(
+        "input",
+        function (event) {
+
+            if (
+                event.target.classList.contains(
+                    "quantity-input"
+                ) ||
+                event.target.classList.contains(
+                    "price-input"
+                )
+            ) {
+
+                updateTotal();
+
+            }
+
+        }
+    );
+
+
+    // Calculate purchase total
+    function updateTotal() {
+
+        let total = 0;
+
+
+        const rows =
+            document.querySelectorAll(
+                ".purchase-item"
+            );
+
+
+        rows.forEach(function (row) {
+
+            const quantity =
+                parseFloat(
+                    row.querySelector(
+                        ".quantity-input"
+                    )?.value
+                ) || 0;
+
+
+            const price =
+                parseFloat(
+                    row.querySelector(
+                        ".price-input"
+                    )?.value
+                ) || 0;
+
+
+            total +=
+                quantity * price;
+
+        });
+
+
+        grandTotal.textContent =
+            total.toFixed(2);
+
+    }
+
+
+    // Re-index all purchase item rows
+    // before submitting the form.
+    //
+    // This prevents gaps such as:
+    //
+    // Items[0]
+    // Items[2]
+    //
+    // and converts them into:
+    //
+    // Items[0]
+    // Items[1]
+    function reindexItems() {
+
+        const rows =
+            document.querySelectorAll(
+                ".purchase-item"
+            );
+
+
+        rows.forEach(function (row, index) {
+
+            const productSelect =
+                row.querySelector(
+                    ".product-select"
+                );
+
+            const quantityInput =
+                row.querySelector(
+                    ".quantity-input"
+                );
+
+            const priceInput =
+                row.querySelector(
+                    ".price-input"
+                );
+
+
+            productSelect.name =
+                `Items[${index}].ProductId`;
+
+
+            quantityInput.name =
+                `Items[${index}].Quantity`;
+
+
+            priceInput.name =
+                `Items[${index}].UnitPrice`;
+
+        });
+
+    }
+
+
+    // Re-index items immediately before
+    // ASP.NET Core receives the form.
+    purchaseForm.addEventListener(
+        "submit",
+        function () {
+
+            reindexItems();
+
+        }
+    );
+
+
+    // Start with one product row
+    // when creating a new purchase.
+    if (
+        document.querySelectorAll(
+            ".purchase-item"
+        ).length === 0
+    ) {
+
+        addItemRow();
+
+    }
+
+
+    // Calculate initial total.
+    updateTotal();
+
+</script>x

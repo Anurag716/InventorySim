@@ -39,7 +39,6 @@ public partial class Product
 
     public int ReorderLevel { get; set; }
 
-    [Required]
     public bool? IsActive { get; set; }
 
     [Column(TypeName = "datetime")]
@@ -50,7 +49,7 @@ public partial class Product
 
     [ForeignKey("CategoryId")]
     [InverseProperty("Products")]
-    public virtual Category Category { get; set; } = null!;
+    public virtual Category? Category { get; set; }
 
     [InverseProperty("Product")]
     public virtual ICollection<Inventorytransaction> Inventorytransactions { get; set; } = new List<Inventorytransaction>();

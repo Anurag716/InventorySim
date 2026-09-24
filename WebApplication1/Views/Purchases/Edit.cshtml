@@ -1,0 +1,682 @@
+﻿```cshtml
+@model Inventory.ViewModels.PurchaseEditViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Edit Purchase";
+
+    var productData = Model.Products.Select(product => new
+    {
+        value = product.ProductId,
+        text = product.ProductName + " (" + product.Sku + ")",
+        purchasePrice = product.PurchasePrice
+    });
+}
+
+<div class="container mt-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2>Edit Purchase</h2>
+
+        <a asp-action="Index"
+           class="btn btn-secondary">
+            Back to Purchases
+        </a>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <form asp-action="Edit"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       asp-for="PurchaseId" />
+
+                <input type="hidden"
+                       asp-for="PurchaseNumber" />
+
+                <!-- Validation Summary -->
+
+                <div asp-validation-summary="ModelOnly"
+                     class="text-danger mb-3">
+                </div>
+
+                <!-- Custom JavaScript Message -->
+
+                <div id="itemErrorMessage"
+                     class="alert alert-warning alert-dismissible fade show d-none"
+                     role="alert">
+
+                    <strong>Cannot remove product.</strong>
+                    A purchase must contain at least one product.
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="alert"
+                            aria-label="Close">
+                    </button>
+
+                </div>
+
+                <!-- Purchase Information -->
+
+                <div class="row mb-4">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label">
+                            Purchase Number
+                        </label>
+
+                        <input type="text"
+                               class="form-control"
+                               value="@Model.PurchaseNumber"
+                               readonly />
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label asp-for="SupplierId"
+                               class="form-label">
+                            Supplier
+                        </label>
+
+                        <select asp-for="SupplierId"
+                                asp-items="Model.Suppliers"
+                                class="form-select">
+
+                            <option value="">
+                                -- Select Supplier --
+                            </option>
+
+                        </select>
+
+                        <span asp-validation-for="SupplierId"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <div class="row mb-4">
+
+                    <div class="col-md-6">
+
+                        <label asp-for="PurchaseDate"
+                               class="form-label">
+                            Purchase Date
+                        </label>
+
+                        <input asp-for="PurchaseDate"
+                               class="form-control" />
+
+                        <span asp-validation-for="PurchaseDate"
+                              class="text-danger">
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <!-- Products -->
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+
+                    <h5>
+                        Purchased Products
+                    </h5>
+
+                    <button type="button"
+                            id="addItemButton"
+                            class="btn btn-primary btn-sm">
+
+                        Add Product
+
+                    </button>
+
+                </div>
+
+                <div id="itemsContainer">
+
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <div class="purchase-item border rounded p-3 mb-3">
+
+                            <div class="row align-items-end">
+
+                                <input type="hidden"
+                                       name="Items[@i].PurchaseItemId"
+                                       value="@Model.Items[i].PurchaseItemId" />
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label">
+                                        Product
+                                    </label>
+
+                                    <select name="Items[@i].ProductId"
+                                            class="form-select product-select">
+
+                                        <option value="">
+                                            -- Select Product --
+                                        </option>
+
+                                        @foreach (var product in Model.Products)
+                                        {
+                                            if (product.ProductId == Model.Items[i].ProductId)
+                                            {
+                                                <option value="@product.ProductId"
+                                                        data-purchase-price="@product.PurchasePrice"
+                                                        selected>
+
+                                                    @product.ProductName
+                                                    (@product.Sku)
+
+                                                </option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@product.ProductId"
+                                                        data-purchase-price="@product.PurchasePrice">
+
+                                                    @product.ProductName
+                                                    (@product.Sku)
+
+                                                </option>
+                                            }
+                                        }
+
+                                    </select>
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <label class="form-label">
+                                        Quantity
+                                    </label>
+
+                                    <input type="number"
+                                           name="Items[@i].Quantity"
+                                           class="form-control quantity-input"
+                                           min="1"
+                                           value="@Model.Items[i].Quantity" />
+
+                                </div>
+
+                                <div class="col-md-3">
+
+                                    <label class="form-label">
+                                        Unit Price
+                                    </label>
+
+                                    <input type="number"
+                                           name="Items[@i].UnitPrice"
+                                           class="form-control price-input"
+                                           min="0.01"
+                                           step="0.01"
+                                           value="@Model.Items[i].UnitPrice.ToString("0.00")" />
+
+                                </div>
+
+                                <div class="col-md-2">
+
+                                    <label class="form-label">
+                                        Subtotal
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control subtotal-input"
+                                           value="@((Model.Items[i].Quantity * Model.Items[i].UnitPrice).ToString("0.00"))"
+                                           readonly />
+
+                                </div>
+
+                                <div class="col-md-1">
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm remove-item">
+
+                                        Remove
+
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+
+                <!-- Total -->
+
+                <div class="row justify-content-end mt-4">
+
+                    <div class="col-md-4">
+
+                        <div class="card bg-light">
+
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between">
+
+                                    <strong>
+                                        Total Amount
+                                    </strong>
+
+                                    <strong id="totalAmount">
+                                        ₹0.00
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Buttons -->
+
+                <div class="mt-4">
+
+                    <button type="submit"
+                            class="btn btn-success">
+
+                        Save Changes
+
+                    </button>
+
+                    <a asp-action="Index"
+                       class="btn btn-secondary ms-2">
+
+                        Cancel
+
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+
+        let itemIndex = @Model.Items.Count;
+
+        const products =
+            @Html.Raw(JsonSerializer.Serialize(productData));
+
+        const itemsContainer =
+            document.getElementById("itemsContainer");
+
+        const addItemButton =
+            document.getElementById("addItemButton");
+
+        const totalAmount =
+            document.getElementById("totalAmount");
+
+        const itemErrorMessage =
+            document.getElementById("itemErrorMessage");
+
+
+        // Calculate total amount
+
+        function updateTotal() {
+
+            let total = 0;
+
+            const rows =
+                document.querySelectorAll(".purchase-item");
+
+            rows.forEach(function (row) {
+
+                const quantity =
+                    parseFloat(
+                        row.querySelector(".quantity-input").value
+                    ) || 0;
+
+                const price =
+                    parseFloat(
+                        row.querySelector(".price-input").value
+                    ) || 0;
+
+                const subtotal =
+                    quantity * price;
+
+                row.querySelector(".subtotal-input").value =
+                    subtotal.toFixed(2);
+
+                total += subtotal;
+
+            });
+
+            totalAmount.textContent =
+                "₹" + total.toFixed(2);
+        }
+
+
+        // Re-index all product rows
+        // This keeps ASP.NET Core model binding correct.
+
+        function reindexItems() {
+
+            const rows =
+                document.querySelectorAll(".purchase-item");
+
+            rows.forEach(function (row, index) {
+
+                const purchaseItemId =
+                    row.querySelector(
+                        'input[name*=".PurchaseItemId"]'
+                    );
+
+                const productSelect =
+                    row.querySelector(".product-select");
+
+                const quantityInput =
+                    row.querySelector(".quantity-input");
+
+                const priceInput =
+                    row.querySelector(".price-input");
+
+
+                if (purchaseItemId) {
+
+                    purchaseItemId.name =
+                        `Items[${index}].PurchaseItemId`;
+
+                }
+
+
+                productSelect.name =
+                    `Items[${index}].ProductId`;
+
+                quantityInput.name =
+                    `Items[${index}].Quantity`;
+
+                priceInput.name =
+                    `Items[${index}].UnitPrice`;
+
+            });
+
+            itemIndex = rows.length;
+        }
+
+
+        // Show Bootstrap warning
+
+        function showItemError() {
+
+            itemErrorMessage.classList.remove("d-none");
+
+            // Automatically hide after 4 seconds
+
+            setTimeout(function () {
+
+                itemErrorMessage.classList.add("d-none");
+
+            }, 4000);
+        }
+
+
+        // Add new product row
+
+        addItemButton.addEventListener(
+            "click",
+            function () {
+
+                let options =
+                    '<option value="">-- Select Product --</option>';
+
+                products.forEach(function (product) {
+
+                    options +=
+                        `<option value="${product.value}"
+                                 data-purchase-price="${product.purchasePrice}">
+                            ${product.text}
+                         </option>`;
+
+                });
+
+
+                const row =
+                    document.createElement("div");
+
+                row.className =
+                    "purchase-item border rounded p-3 mb-3";
+
+
+                row.innerHTML = `
+
+                    <div class="row align-items-end">
+
+                        <input type="hidden"
+                               name="Items[${itemIndex}].PurchaseItemId"
+                               value="0" />
+
+                        <div class="col-md-4">
+
+                            <label class="form-label">
+                                Product
+                            </label>
+
+                            <select name="Items[${itemIndex}].ProductId"
+                                    class="form-select product-select">
+
+                                ${options}
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Quantity
+                            </label>
+
+                            <input type="number"
+                                   name="Items[${itemIndex}].Quantity"
+                                   class="form-control quantity-input"
+                                   min="1"
+                                   value="1" />
+
+                        </div>
+
+                        <div class="col-md-3">
+
+                            <label class="form-label">
+                                Unit Price
+                            </label>
+
+                            <input type="number"
+                                   name="Items[${itemIndex}].UnitPrice"
+                                   class="form-control price-input"
+                                   min="0.01"
+                                   step="0.01"
+                                   value="0.00" />
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            <label class="form-label">
+                                Subtotal
+                            </label>
+
+                            <input type="text"
+                                   class="form-control subtotal-input"
+                                   value="0.00"
+                                   readonly />
+
+                        </div>
+
+                        <div class="col-md-1">
+
+                            <button type="button"
+                                    class="btn btn-danger btn-sm remove-item">
+
+                                Remove
+
+                            </button>
+
+                        </div>
+
+                    </div>
+                `;
+
+
+                itemsContainer.appendChild(row);
+
+                itemIndex++;
+
+                updateTotal();
+
+                reindexItems();
+            }
+        );
+
+
+        // Product selection
+
+        itemsContainer.addEventListener(
+            "change",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "product-select"
+                    )
+                ) {
+
+                    const selectedOption =
+                        event.target.options[
+                            event.target.selectedIndex
+                        ];
+
+                    const purchasePrice =
+                        selectedOption.dataset.purchasePrice;
+
+                    const row =
+                        event.target.closest(
+                            ".purchase-item"
+                        );
+
+                    const priceInput =
+                        row.querySelector(
+                            ".price-input"
+                        );
+
+                    if (
+                        purchasePrice !== undefined &&
+                        purchasePrice !== ""
+                    ) {
+
+                        priceInput.value =
+                            parseFloat(
+                                purchasePrice
+                            ).toFixed(2);
+
+                    }
+
+                    updateTotal();
+                }
+            }
+        );
+
+
+        // Quantity and price changes
+
+        itemsContainer.addEventListener(
+            "input",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "quantity-input"
+                    ) ||
+                    event.target.classList.contains(
+                        "price-input"
+                    )
+                ) {
+
+                    updateTotal();
+                }
+            }
+        );
+
+
+        // Remove product row
+
+        itemsContainer.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target.classList.contains(
+                        "remove-item"
+                    )
+                ) {
+
+                    const rows =
+                        document.querySelectorAll(
+                            ".purchase-item"
+                        );
+
+
+                    // A purchase must always have
+                    // at least one product.
+
+                    if (rows.length <= 1) {
+
+                        showItemError();
+
+                        return;
+                    }
+
+
+                    event.target
+                        .closest(".purchase-item")
+                        .remove();
+
+
+                    // Re-index after removing a row
+
+                    reindexItems();
+
+                    updateTotal();
+                }
+            }
+        );
+
+
+        // Initial setup
+
+        reindexItems();
+
+        updateTotal();
+
+    </script>
+}
+
