@@ -1,0 +1,409 @@
+﻿
+@model IEnumerable<Inventory.Models.Customer>
+
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="container-fluid">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between mb-4">
+
+    <div>
+        <h2 class="mb-1">Customers</h2>
+        <p class="text-muted mb-0">
+            Manage your customer records.
+        </p>
+    </div>
+
+    <div class="d-flex align-items-end">
+        <a asp-action="ExportCsv"
+           class="btn btn-success me-2">
+            <i class="bi bi-download"></i>
+             Export CSV
+        </a>
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            <i class="bi bi-person-plus"></i>
+             Add Customer
+        </a>
+    </div>
+
+</div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            @if (!Model.Any())
+            {
+                <!-- No customers in database -->
+                <div class="text-center py-5">
+                    <i class="bi bi-people fs-1 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No customers found
+                    </h5>
+
+                    <p class="text-muted">
+                        Add your first customer to get started.
+                    </p>
+
+                    <a asp-action="Create" class="btn btn-primary">
+                        Add Customer
+                    </a>
+                </div>
+            }
+            else
+            {
+                <!-- Search and Filter -->
+                <div class="row g-2 mb-3">
+
+                    <!-- Search -->
+                    <div class="col-md-6">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+
+                            <input type="text"
+                                   id="customerSearch"
+                                   class="form-control"
+                                   placeholder="Search by name, phone or email..." />
+
+                        </div>
+
+                    </div>
+
+                    <!-- Status Filter -->
+                    <div class="col-md-3">
+
+                        <select id="statusFilter"
+                                class="form-select">
+
+                            <option value="all">
+                                All Customers
+                            </option>
+
+                            <option value="active">
+                                Active
+                            </option>
+
+                            <option value="inactive">
+                                Inactive
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <!-- Customer Table -->
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Address</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var customer in Model)
+                            {
+                                <tr class="customer-row"
+                                    data-name="@customer.Name"
+                                    data-phone="@customer.Phone"
+                                    data-email="@customer.Email"
+                                    data-status="@(customer.IsActive == true ? "active" : "inactive")">
+
+                                    <td>
+                                        <strong>
+                                            @customer.Name
+                                        </strong>
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(customer.Phone)
+                                            ? "-"
+                                            : customer.Phone)
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(customer.Email)
+                                            ? "-"
+                                            : customer.Email)
+                                    </td>
+
+                                    <td>
+                                        @(string.IsNullOrWhiteSpace(customer.Address)
+                                            ? "-"
+                                            : customer.Address)
+                                    </td>
+
+                                    <td>
+
+                                        @if (customer.IsActive == true)
+                                        {
+                                            <span class="badge bg-success">
+                                                Active
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Inactive
+                                            </span>
+                                        }
+
+                                    </td>
+
+                                    <td class="text-end">
+
+                                        <a asp-action="Edit"
+                                           asp-route-id="@customer.CustomerId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            Edit
+                                        </a>
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#deleteModal-@customer.CustomerId">
+                                            Delete
+                                        </button>
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+                <!-- No Matching Customers Message -->
+                <div id="noMatchingCustomers"
+                     class="text-center py-4 d-none">
+
+                    <i class="bi bi-search fs-3 text-muted"></i>
+
+                    <h6 class="mt-2">
+                        No matching customers found
+                    </h6>
+
+                    <p class="text-muted mb-0">
+                        Try changing your search or status filter.
+                    </p>
+
+                </div>
+
+            }
+
+        </div>
+    </div>
+
+
+    <!-- Delete Modals -->
+    @foreach (var customer in Model)
+    {
+        <div class="modal fade"
+             id="deleteModal-@customer.CustomerId"
+             tabindex="-1"
+             aria-hidden="true">
+
+            <div class="modal-dialog modal-dialog-centered">
+
+                <div class="modal-content">
+
+                    <div class="modal-header">
+
+                        <h5 class="modal-title">
+                            Delete Customer
+                        </h5>
+
+                        <button type="button"
+                                class="btn-close"
+                                data-bs-dismiss="modal">
+                        </button>
+
+                    </div>
+
+                    <div class="modal-body">
+
+                        <p>
+                            Are you sure you want to delete
+                            <strong>@customer.Name</strong>?
+                        </p>
+
+                        <div class="alert alert-warning mb-0">
+                            This action cannot be undone.
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer">
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+
+                        <form asp-action="Delete"
+                              method="post">
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@customer.CustomerId" />
+
+                            @Html.AntiForgeryToken()
+
+                            <button type="submit"
+                                    class="btn btn-danger">
+                                Delete
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        const searchInput =
+            document.getElementById("customerSearch");
+
+        const statusFilter =
+            document.getElementById("statusFilter");
+
+        const customerRows =
+            document.querySelectorAll(".customer-row");
+
+        const noMatchingCustomers =
+            document.getElementById("noMatchingCustomers");
+
+
+        function filterCustomers() {
+
+            const searchText =
+                searchInput.value
+                    .toLowerCase()
+                    .trim();
+
+            const selectedStatus =
+                statusFilter.value;
+
+            let visibleCustomerCount = 0;
+
+
+            customerRows.forEach(function (row) {
+
+                const name =
+                    (row.dataset.name || "")
+                        .toLowerCase();
+
+                const phone =
+                    (row.dataset.phone || "")
+                        .toLowerCase();
+
+                const email =
+                    (row.dataset.email || "")
+                        .toLowerCase();
+
+                const status =
+                    row.dataset.status;
+
+
+                const matchesSearch =
+                    name.includes(searchText) ||
+                    phone.includes(searchText) ||
+                    email.includes(searchText);
+
+
+                const matchesStatus =
+                    selectedStatus === "all" ||
+                    status === selectedStatus;
+
+
+                const shouldShow =
+                    matchesSearch &&
+                    matchesStatus;
+
+
+                if (shouldShow) {
+
+                    row.style.display = "";
+
+                    visibleCustomerCount++;
+
+                }
+                else {
+
+                    row.style.display = "none";
+
+                }
+
+            });
+
+
+            // Show or hide "No matching customers" message
+
+            if (visibleCustomerCount === 0) {
+
+                noMatchingCustomers.classList.remove("d-none");
+
+            }
+            else {
+
+                noMatchingCustomers.classList.add("d-none");
+
+            }
+
+        }
+
+
+        // Search while typing
+
+        searchInput.addEventListener(
+            "input",
+            filterCustomers
+        );
+
+
+        // Filter when status changes
+
+        statusFilter.addEventListener(
+            "change",
+            filterCustomers
+        );
+
+    </script>
+
+}
