@@ -43,5 +43,7 @@ namespace Inventory.ViewModels
         public string Sku { get; set; } = string.Empty;
 
         public decimal PurchasePrice { get; set; }
+
+        public int CurrentStock { get; set; }
     }
 }
