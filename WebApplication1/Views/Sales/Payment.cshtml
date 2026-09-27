@@ -1,0 +1,833 @@
+﻿@using Inventory.Models
+@model Inventory.ViewModels.PaymentViewModel
+
+@{
+    ViewData["Title"] = "Payment";
+
+    var sale = ViewBag.Sale as Sale;
+}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="mb-1">Payment</h2>
+        <p class="text-muted mb-0">
+            Complete payment for sale
+            <strong>@sale?.SaleNumber</strong>
+        </p>
+    </div>
+
+
+    <div class="row g-4">
+
+        <!-- LEFT: Sale Summary -->
+        <div class="col-lg-7">
+
+            <div class="card shadow-sm">
+
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        Sale Summary
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Sale Information -->
+                    <div class="row mb-4">
+
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Sale Number
+                            </small>
+
+                            <div class="fw-semibold">
+                                @sale?.SaleNumber
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <small class="text-muted">
+                                Customer
+                            </small>
+
+                            <div class="fw-semibold">
+
+                                @if (sale?.Customer != null)
+                                {
+                                    @sale.Customer.Name
+                                }
+                                else
+                                {
+                                    <span>Walk-in Customer</span>
+                                }
+
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Products -->
+                    <div class="table-responsive">
+
+                        <table class="table align-middle">
+
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">
+                                        Qty
+                                    </th>
+                                    <th class="text-end">
+                                        Price
+                                    </th>
+                                    <th class="text-end">
+                                        Total
+                                    </th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @foreach (var item in sale!.Saleitems)
+                                {
+                                    <tr>
+
+                                        <td>
+                                            <div class="fw-semibold">
+                                                @item.Product.Name
+                                            </div>
+
+                                            <small class="text-muted">
+                                                @item.Product.Sku
+                                            </small>
+                                        </td>
+
+                                        <td class="text-center">
+                                            @item.Quantity
+                                        </td>
+
+                                        <td class="text-end">
+                                            ₹@item.UnitPrice.ToString("N2")
+                                        </td>
+
+                                        <td class="text-end">
+                                            ₹@item.Subtotal.ToString("N2")
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <!-- Amount Summary -->
+                    <div class="row justify-content-end">
+
+                        <div class="col-md-6">
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Subtotal</span>
+
+                                <span>
+                                    ₹@sale.Subtotal.ToString("N2")
+                                </span>
+                            </div>
+
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Discount</span>
+
+                                <span class="text-danger">
+                                    - ₹@sale.DiscountAmount.ToString("N2")
+                                </span>
+                            </div>
+
+
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Tax</span>
+
+                                <span>
+                                    ₹@sale.TaxAmount.ToString("N2")
+                                </span>
+                            </div>
+
+
+                            <hr />
+
+
+                            <div class="d-flex justify-content-between">
+
+                                <strong class="fs-5">
+                                    Grand Total
+                                </strong>
+
+                                <strong class="fs-5 text-primary">
+                                    ₹@sale.GrandTotal.ToString("N2")
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+       
+
+        <!-- RIGHT: Payment -->
+        <div class="col-lg-5">
+
+            <div class="card shadow-sm payment-card">
+
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        Payment Method
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    @Html.AntiForgeryToken()
+                    <!-- Payment Method -->
+                    <div class="mb-4">
+
+                        <div class="form-check mb-3">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="paymentMethod"
+                                   id="cashPayment"
+                                   value="Cash">
+                            <div class="form-check-label">
+
+                                <label for="cashPayment">
+                                    <i class="bi bi-cash-stack me-2"></i>
+                                    <strong>Cash</strong>
+                                </label>
+
+                                <div class="text-muted small">
+                                    Collect Cash from Customer.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div class="form-check">
+
+                            <input class="form-check-input"
+                                   type="radio"
+                                   name="paymentMethod"
+                                   id="qrPayment"
+                                   value="QR">
+
+                            <div class="form-check-label">
+
+                                <label for="qrPayment">
+                                    <i class="bi bi-qr-code me-2"></i>
+                                    <strong>QR</strong>
+                                </label>
+
+                                <div class="text-muted small">
+                                    Customer Pays through QR code.
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Cash Section -->
+                    <div id="cashPaymentSection"
+                         class="payment-section d-none">
+
+                        <div class="alert alert-light border">
+
+                            <i class="bi bi-cash-stack me-2"></i>
+
+                            Collect the payment from the customer
+                            and confirm that the full amount has
+                            been received.
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- QR Section -->
+                    <div id="qrPaymentSection"
+                         class="payment-section d-none">
+
+                        <div class="text-center">
+
+                            <h6 class="mb-3">
+                                Scan to Pay
+                            </h6>
+
+
+                            <!-- Replace this image later -->
+                            <div class="qr-placeholder mx-auto mb-3">
+
+                                <i class="bi bi-qr-code"></i>
+
+                                <div>
+                                    Store QR Code
+                                </div>
+
+                            </div>
+
+
+                            <p class="text-muted small mb-3">
+
+                                Ask the customer to scan the QR
+                                code and complete the payment.
+
+                            </p>
+
+
+                            <div class="alert alert-warning small">
+
+                                <i class="bi bi-info-circle me-1"></i>
+
+                                Verify the payment using the
+                                available payment confirmation
+                                before confirming.
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Payment Amount -->
+                    <div id="paymentConfirmationSection"
+                         class="d-none">
+
+                        <hr />
+
+                        <div class="text-center mb-3">
+
+                            <small class="text-muted">
+                                Amount to Receive
+                            </small>
+
+                            <div class="display-6 fw-bold text-primary">
+                                ₹@sale.GrandTotal.ToString("N2")
+                            </div>
+
+                        </div>
+
+
+                        <button type="button"
+                                id="paymentReceivedButton"
+                                class="btn btn-success btn-lg w-100">
+
+                            <i class="bi bi-check-circle me-2"></i>
+
+                            Payment Received
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+    .payment-success-icon {
+        width: 75px;
+        height: 75px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #d1e7dd;
+        color: #198754;
+        font-size: 45px;
+    }
+    .payment-section {
+        transition: all 0.2s ease;
+    }
+    .invoice-processing-box {
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 25px;
+        border: 1px solid #dee2e6;
+        border-radius: 12px;
+        background: #f8f9fa;
+    }
+
+    .invoice-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .qr-placeholder {
+        width: 220px;
+        height: 220px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        border: 2px dashed #adb5bd;
+        border-radius: 12px;
+
+        color: #6c757d;
+
+        background: #f8f9fa;
+    }
+
+    .qr-placeholder i {
+        font-size: 80px;
+        margin-bottom: 10px;
+    }
+
+</style>
+
+
+@section Scripts {
+
+    <script>
+
+        const cashPayment =
+            document.getElementById("cashPayment");
+
+        const qrPayment =
+            document.getElementById("qrPayment");
+
+        const cashPaymentSection =
+            document.getElementById("cashPaymentSection");
+
+        const qrPaymentSection =
+            document.getElementById("qrPaymentSection");
+
+        const paymentConfirmationSection =
+            document.getElementById(
+                "paymentConfirmationSection"
+            );
+
+        const paymentReceivedButton =
+            document.getElementById(
+                "paymentReceivedButton"
+            );
+
+
+        function updatePaymentMethod() {
+
+            const selectedMethod =
+                document.querySelector(
+                    'input[name="paymentMethod"]:checked'
+                )?.value;
+
+
+            // Hide everything first
+            cashPaymentSection.classList.add("d-none");
+
+            qrPaymentSection.classList.add("d-none");
+
+            paymentConfirmationSection.classList.add(
+                "d-none"
+            );
+
+
+            if (selectedMethod === "Cash") {
+
+                cashPaymentSection.classList.remove(
+                    "d-none"
+                );
+
+                paymentConfirmationSection.classList.remove(
+                    "d-none"
+                );
+            }
+
+
+            if (selectedMethod === "QR") {
+
+                qrPaymentSection.classList.remove(
+                    "d-none"
+                );
+
+                paymentConfirmationSection.classList.remove(
+                    "d-none"
+                );
+            }
+        }
+
+
+        cashPayment.addEventListener(
+            "change",
+            updatePaymentMethod
+        );
+
+
+        qrPayment.addEventListener(
+            "change",
+            updatePaymentMethod
+        );
+
+
+        paymentReceivedButton.addEventListener(
+            "click",
+            async function () {
+
+                const selectedMethod =
+                    document.querySelector(
+                        'input[name="paymentMethod"]:checked'
+                    )?.value;
+
+
+                if (!selectedMethod) {
+
+                    alert(
+                        "Please select a payment method."
+                    );
+
+                    return;
+                }
+
+
+                /*
+                 * Disable the button while the
+                 * database transaction is running.
+                 */
+                paymentReceivedButton.disabled = true;
+
+                paymentReceivedButton.innerHTML =
+                    '<span class="spinner-border spinner-border-sm me-2"></span>' +
+                    'Processing Payment...';
+
+
+                try {
+
+                    const token =
+                        document.querySelector(
+                            'input[name="__RequestVerificationToken"]'
+                        )?.value;
+
+
+                    const requestData = {
+
+                        saleId: @Model.SaleId,
+
+                        paymentMethod:
+                            selectedMethod,
+
+                        amount:
+                            @Model.Amount
+                    };
+
+
+                    const response =
+                        await fetch(
+                            "/Sales/ConfirmPayment",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json",
+
+                                    "RequestVerificationToken":
+                                        token
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        requestData
+                                    )
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (!response.ok ||
+                        !result.success) {
+
+                        alert(
+                            result.message ||
+                            "Unable to process payment."
+                        );
+
+                        paymentReceivedButton.disabled =
+                            false;
+
+                        paymentReceivedButton.innerHTML =
+                            '<i class="bi bi-check-circle me-2"></i>' +
+                            'Payment Received';
+
+                        return;
+                    }
+
+
+                    /*
+                     * Payment successfully committed.
+                     */
+                    showInvoiceGenerating(result);
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Payment error:",
+                        error
+                    );
+
+
+                    alert(
+                        "An unexpected error occurred while processing the payment."
+                    );
+
+
+                    paymentReceivedButton.disabled =
+                        false;
+
+                    paymentReceivedButton.innerHTML =
+                        '<i class="bi bi-check-circle me-2"></i>' +
+                        'Payment Received';
+                }
+
+            }
+        );
+
+                      
+ function showInvoiceGenerating(result) {
+
+            const paymentCard =
+                document.querySelector(".payment-card");
+
+            paymentCard.innerHTML = `
+                <div class="text-center py-5">
+
+                    <div class="payment-success-icon mb-3">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+
+                    <h3 class="text-success mb-2">
+                        Payment Successful
+                    </h3>
+
+                    <p class="text-muted mb-4">
+                        ₹${Number(result.amount).toLocaleString('en-IN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        })}
+                        received successfully.
+                    </p>
+
+                    <div class="invoice-processing-box">
+
+                        <div class="invoice-spinner mb-3">
+
+                            <div class="spinner-border text-primary"
+                                 role="status">
+                            </div>
+
+                        </div>
+
+                        <h5 class="mb-1">
+                            Generating Invoice...
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Please wait while we prepare your invoice.
+                        </p>
+
+                    </div>
+
+                </div>
+            `;
+
+            /*
+             * The invoice has already been created
+             * successfully by ConfirmPayment.
+             *
+             * Now move to the final invoice-ready state.
+             */
+            setTimeout(function () {
+
+                showInvoiceReady(result);
+
+            }, 1000);
+        }
+
+          // showInvoiceReady displays the final invoice-ready state with options to print or send via WhatsApp.
+             function showInvoiceReady(result) {
+
+            const paymentCard =
+                document.querySelector(".payment-card");
+
+            let whatsappButton = "";
+
+            if (result.customerPhone) {
+
+                const phone =
+                    result.customerPhone.replace(/\D/g, "");
+
+                const message =
+                    `Hello ${result.customerName || "Customer"},\n\n` +
+                    `Thank you for shopping with Inventra.\n\n` +
+                    `Invoice No: ${result.invoiceNumber}\n` +
+                    `Sale No: ${result.saleNumber}\n` +
+                    `Amount Paid: ₹${Number(result.amount).toLocaleString("en-IN", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })}\n` +
+                    `Payment Method: ${result.paymentMethod}\n` +
+                    `Payment Status: PAID\n\n` +
+                    `Thank you for your purchase!`;
+
+                const whatsappUrl =
+                    "https://wa.me/" +
+                    phone +
+                    "?text=" +
+                    encodeURIComponent(message);
+
+                whatsappButton = `
+                    <a href="${whatsappUrl}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="btn btn-success btn-lg">
+
+                        <i class="bi bi-whatsapp me-2"></i>
+                        Send Bill on WhatsApp
+
+                    </a>
+                `;
+            }
+
+            paymentCard.innerHTML = `
+                <div class="text-center py-5">
+
+                    <div class="payment-success-icon mb-3">
+                        <i class="bi bi-check-lg"></i>
+                    </div>
+
+                    <h3 class="text-success mb-2">
+                        Invoice Ready
+                    </h3>
+
+                    <p class="text-muted mb-4">
+                        Invoice
+                        <strong>${result.invoiceNumber}</strong>
+                        has been generated successfully.
+                    </p>
+
+                    <div class="d-grid gap-2">
+
+                        <a href="/Sales/InvoicePdf/${result.invoiceId}"
+                           target="_blank"
+                           class="btn btn-primary btn-lg">
+
+                            <i class="bi bi-printer me-2"></i>
+                            Print Bill / Invoice
+
+                        </a>
+
+                        ${whatsappButton}
+
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                onclick="window.location.href='/Sales/Create'">
+
+                            <i class="bi bi-check-circle me-2"></i>
+                            Done
+
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+        }
+
+        // showPaymentSuccess is not used in the current flow, but kept for reference if needed in future.
+        function showPaymentSuccess(result) {
+
+            /*
+             * Hide the payment controls.
+             */
+            cashPaymentSection.classList.add(
+                "d-none"
+            );
+
+            qrPaymentSection.classList.add(
+                "d-none"
+            );
+
+            paymentConfirmationSection.classList.add(
+                "d-none"
+            );
+
+
+            /*
+             * We'll replace this section with
+             * our proper success screen next.
+             */
+            paymentReceivedButton
+                .closest(".card-body")
+                .insertAdjacentHTML(
+                    "beforeend",
+                    `
+                    <div id="paymentSuccessSection"
+                         class="text-center mt-3">
+
+                        <div class="mb-3">
+                            <div class="payment-success-icon">
+                                <i class="bi bi-check-lg"></i>
+                            </div>
+                        </div>
+
+                        <h4 class="text-success">
+                            Payment Successful
+                        </h4>
+
+                        <p class="text-muted">
+                            Payment of ₹${Number(result.amount).toLocaleString(
+                                "en-IN",
+                                {
+                                    minimumFractionDigits: 2
+                                }
+                            )} received successfully.
+                        </p>
+
+                    </div>
+                    `
+                );
+        }
+
+    </script>
+
+}

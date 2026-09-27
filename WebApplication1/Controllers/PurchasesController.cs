@@ -272,10 +272,10 @@ namespace Inventory.Controllers
             purchase.UpdatedAt = DateTime.Now;
 
             // IDs of items that still exist after editing
-            var submittedItemIds = model.Items
-                .Where(i => i.PurchaseItemId > 0)
-                .Select(i => i.PurchaseItemId)
-                .ToHashSet();
+            var submittedItemIds = model.Items!
+    .Where(i => i.PurchaseItemId > 0)
+    .Select(i => i.PurchaseItemId)
+    .ToHashSet();
 
             // Remove purchase items that were deleted from the form
             var itemsToRemove = purchase.Purchaseitems
