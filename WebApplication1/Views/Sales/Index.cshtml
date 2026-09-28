@@ -1,0 +1,1349 @@
+﻿@using Inventory.Models
+@model IEnumerable<Sale>
+
+@{
+    ViewData["Title"] = "Sales";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Sales</h2>
+        <p class="text-muted mb-0">
+            View and manage sales transactions.
+        </p>
+    </div>
+
+    <div>
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="ExportCsv"
+               class="btn btn-outline-success me-2">
+                <i class="bi bi-download"></i>
+                Export CSV
+            </a>
+        }
+
+        <a asp-action="Create"
+           class="btn btn-primary">
+            <i class="bi bi-cart-plus"></i>
+            New Sale
+        </a>
+    </div>
+</div>
+
+
+<!-- Filters -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+
+        <div class="row g-3 align-items-end">
+
+            <!-- Search -->
+            <div class="col-md-3">
+                <label class="form-label">
+                    Search
+                </label>
+
+                <input type="text"
+                       id="salesSearch"
+                       class="form-control"
+                       placeholder="Sale no. or customer"
+                       autocomplete="off" />
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-2">
+                <label class="form-label">
+                    Status
+                </label>
+
+                <select id="salesStatus"
+                        class="form-select">
+
+                    <option value="">All</option>
+
+                    <option value="Paid">
+                        Paid
+                    </option>
+
+                    <option value="PendingPayment">
+                        Pending Payment
+                    </option>
+
+                </select>
+            </div>
+
+            <!-- Customer Type -->
+            <div class="col-md-2">
+                <label class="form-label">
+                    Customer
+                </label>
+
+                <select id="salesCustomerType"
+                        class="form-select">
+
+                    <option value="">
+                        All
+                    </option>
+
+                    <option value="Registered">
+                        Registered
+                    </option>
+
+                    <option value="WalkIn">
+                        Walk-in
+                    </option>
+
+                </select>
+            </div>
+
+            <!-- From Date -->
+            <div class="col-md-2">
+                <label class="form-label">
+                    From
+                </label>
+
+                <input type="date"
+                       id="salesFromDate"
+                       class="form-control" />
+            </div>
+
+            <!-- To Date -->
+            <div class="col-md-2">
+                <label class="form-label">
+                    To
+                </label>
+
+                <input type="date"
+                       id="salesToDate"
+                       class="form-control" />
+            </div>
+
+            <!-- Reset -->
+            <div class="col-md-1">
+                <button type="button"
+                        id="resetSalesFilters"
+                        class="btn btn-outline-secondary w-100"
+                        title="Reset filters">
+
+                    <i class="bi bi-arrow-clockwise"></i>
+
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+
+<!-- Sales table -->
+<div class="card shadow-sm">
+
+    <div class="card-body p-0">
+
+        <div class="table-responsive">
+
+            <table class="table table-hover align-middle mb-0">
+
+                <thead class="table-light">
+
+                    <tr>
+                        <th>Sale No.</th>
+                        <th>Customer</th>
+                        <th>Cashier</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="salesTableBody">
+
+                    @if (!Model.Any())
+                    {
+                        <tr id="noSalesRow">
+
+                            <td colspan="7"
+                                class="text-center py-5 text-muted">
+
+                                <i class="bi bi-receipt fs-2 d-block mb-2"></i>
+
+                                No sales found.
+
+                            </td>
+
+                        </tr>
+                    }
+                    else
+                    {
+                        foreach (var sale in Model)
+                        {
+                            var invoice = sale.Invoices
+                                .OrderByDescending(i => i.InvoiceId)
+                                .FirstOrDefault();
+
+                            <tr class="sale-row"
+                                data-sale-number="@sale.SaleNumber"
+                                data-customer-name="@(sale.Customer?.Name ?? "Walk-in Customer")"
+                                data-customer-id="@(sale.CustomerId?.ToString() ?? "")"
+                                data-status="@sale.Status"
+                                data-sale-date="@sale.SaleDate.ToString("yyyy-MM-dd")">
+
+                                <td>
+                                    <strong>
+                                        @sale.SaleNumber
+                                    </strong>
+                                </td>
+
+                                <td>
+                                    @if (sale.Customer != null)
+                                    {
+                                        <span>
+                                            @sale.Customer.Name
+                                        </span>
+
+
+                                    }
+                                    else
+                                    {
+                                        <span>
+                                            Walk-in Customer
+                                        </span>
+
+                                        
+                                    }
+                                </td>
+
+                                <td>
+                                    @sale.CashierUser.FullName
+                                </td>
+
+                                <td>
+                                    @sale.SaleDate.ToString(
+                                        "dd-MM-yyyy HH:mm")
+                                </td>
+
+                                <td>
+                                    <strong>
+                                        ₹@sale.GrandTotal.ToString("N2")
+                                    </strong>
+                                </td>
+
+                                <td>
+
+                                    @if (sale.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success">
+                                            Paid
+                                        </span>
+                                    }
+                                    else if (sale.Status == "PendingPayment")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            Pending Payment
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            @sale.Status
+                                        </span>
+                                    }
+
+                                </td>
+
+                                <td class="text-end">
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary me-1"
+                                            onclick="showSaleDetails(@sale.SaleId)">
+                                        <i class="bi bi-eye"></i>
+                                        Details
+                                    </button>
+
+                                    @if (invoice != null)
+                                    {
+                                        <a asp-action="InvoicePdf"
+                                           asp-route-id="@invoice.InvoiceId"
+                                           target="_blank"
+                                           class="btn btn-sm btn-outline-secondary">
+
+                                            <i class="bi bi-printer"></i>
+                                            Print
+
+                                        </a>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                        <!-- No results after filtering -->
+                        <tr id="noFilteredSalesRow"
+                            style="display: none;">
+
+                            <td colspan="7"
+                                class="text-center py-5 text-muted">
+
+                                <i class="bi bi-search fs-2 d-block mb-2"></i>
+
+                                No sales match your filters.
+
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Sale Details Modal -->
+<div class="modal fade"
+     id="saleDetailsModal"
+     tabindex="-1"
+     aria-labelledby="saleDetailsModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+                    <h5 class="modal-title"
+                        id="saleDetailsModalLabel">
+
+                        <i class="bi bi-receipt me-2"></i>
+                        Sale Details
+
+                    </h5>
+
+                    <small class="text-muted"
+                           id="saleDetailsSaleNumber">
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+
+            </div>
+
+
+            <div class="modal-body">
+
+                <!-- Loading -->
+                <div id="saleDetailsLoading"
+                     class="text-center py-5">
+
+                    <div class="spinner-border text-primary"
+                         role="status">
+                    </div>
+
+                    <p class="text-muted mt-3 mb-0">
+                        Loading sale details...
+                    </p>
+
+                </div>
+
+
+                <!-- Content -->
+                <div id="saleDetailsContent"
+                     style="display: none;">
+
+                    <!-- Sale Information -->
+                    <div class="card shadow-sm mb-3">
+
+                        <div class="card-header">
+                            <strong>
+                                <i class="bi bi-info-circle me-2"></i>
+                                Sale Information
+                            </strong>
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <div class="text-muted small">
+                                        Sale Number
+                                    </div>
+
+                                    <strong id="detailSaleNumber">
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="text-muted small">
+                                        Date
+                                    </div>
+
+                                    <strong id="detailSaleDate">
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="text-muted small">
+                                        Cashier
+                                    </div>
+
+                                    <strong id="detailCashier">
+                                    </strong>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <div class="text-muted small">
+                                        Status
+                                    </div>
+
+                                    <span id="detailStatus">
+                                    </span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Customer -->
+                    <div class="card shadow-sm mb-3">
+
+                        <div class="card-header">
+                            <strong>
+                                <i class="bi bi-person me-2"></i>
+                                Customer
+                            </strong>
+                        </div>
+
+                        <div class="card-body">
+
+                            <div id="detailCustomer">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Items -->
+                    <div class="card shadow-sm mb-3">
+
+                        <div class="card-header">
+                            <strong>
+                                <i class="bi bi-cart3 me-2"></i>
+                                Sale Items
+                            </strong>
+                        </div>
+
+                        <div class="card-body p-0">
+
+                            <div class="table-responsive">
+
+                                <table class="table table-hover align-middle mb-0">
+
+                                    <thead class="table-light">
+
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>SKU</th>
+                                            <th class="text-center">
+                                                Qty
+                                            </th>
+                                            <th class="text-end">
+                                                Unit Price
+                                            </th>
+                                            <th class="text-end">
+                                                Discount
+                                            </th>
+                                            <th class="text-end">
+                                                Subtotal
+                                            </th>
+                                        </tr>
+
+                                    </thead>
+
+                                    <tbody id="detailItems">
+                                    </tbody>
+
+                                </table>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Summary -->
+                    <div class="row justify-content-end">
+
+                        <div class="col-md-5">
+
+                            <div class="card shadow-sm mb-3">
+
+                                <div class="card-header">
+                                    <strong>
+                                        <i class="bi bi-calculator me-2"></i>
+                                        Amount Summary
+                                    </strong>
+                                </div>
+
+                                <div class="card-body">
+
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal</span>
+                                        <strong id="detailSubtotal"></strong>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Discount</span>
+                                        <strong class="text-danger"
+                                                id="detailDiscount">
+                                        </strong>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Tax</span>
+                                        <strong id="detailTax"></strong>
+                                    </div>
+
+                                    <hr>
+
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Grand Total</strong>
+
+                                        <strong class="fs-5"
+                                                id="detailGrandTotal">
+                                        </strong>
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- Payment -->
+                    <div class="card shadow-sm mb-3">
+
+                        <div class="card-header">
+                            <strong>
+                                <i class="bi bi-credit-card me-2"></i>
+                                Payment
+                            </strong>
+                        </div>
+
+                        <div class="card-body"
+                             id="detailPayment">
+                        </div>
+
+                    </div>
+
+
+                    <!-- Invoice -->
+                    <div class="card shadow-sm">
+
+                        <div class="card-header">
+                            <strong>
+                                <i class="bi bi-file-earmark-text me-2"></i>
+                                Invoice
+                            </strong>
+                        </div>
+
+                        <div class="card-body"
+                             id="detailInvoice">
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Error -->
+                <div id="saleDetailsError"
+                     class="alert alert-danger"
+                     style="display: none;">
+
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+
+                    Unable to load sale details.
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const searchInput =
+                document.getElementById("salesSearch");
+
+            const statusInput =
+                document.getElementById("salesStatus");
+
+            const customerTypeInput =
+                document.getElementById("salesCustomerType");
+
+            const fromDateInput =
+                document.getElementById("salesFromDate");
+
+            const toDateInput =
+                document.getElementById("salesToDate");
+
+            const resetButton =
+                document.getElementById("resetSalesFilters");
+
+            const saleRows =
+                document.querySelectorAll(".sale-row");
+
+            const noFilteredSalesRow =
+                document.getElementById("noFilteredSalesRow");
+
+
+            function filterSales() {
+
+                const search =
+                    searchInput.value
+                        .trim()
+                        .toLowerCase();
+
+                const status =
+                    statusInput.value;
+
+                const customerType =
+                    customerTypeInput.value;
+
+                const fromDate =
+                    fromDateInput.value;
+
+                const toDate =
+                    toDateInput.value;
+
+                let visibleCount = 0;
+
+
+                saleRows.forEach(function (row) {
+
+                    const saleNumber =
+                        (row.dataset.saleNumber || "")
+                            .toLowerCase();
+
+                    const customerName =
+                        (row.dataset.customerName || "")
+                            .toLowerCase();
+
+                    const customerId =
+                        row.dataset.customerId || "";
+
+                    const saleStatus =
+                        row.dataset.status || "";
+
+                    const saleDate =
+                        row.dataset.saleDate || "";
+
+
+                    // Search filter
+                    const matchesSearch =
+                        search === "" ||
+                        saleNumber.includes(search) ||
+                        customerName.includes(search);
+
+
+                    // Status filter
+                    const matchesStatus =
+                        status === "" ||
+                        saleStatus === status;
+
+
+                    // Customer type filter
+                    const isRegisteredCustomer =
+                        customerId !== "";
+
+                    const isWalkInCustomer =
+                        customerId === "";
+
+
+                    const matchesCustomerType =
+                        customerType === "" ||
+                        (
+                            customerType === "Registered" &&
+                            isRegisteredCustomer
+                        ) ||
+                        (
+                            customerType === "WalkIn" &&
+                            isWalkInCustomer
+                        );
+
+
+                    // From date filter
+                    const matchesFromDate =
+                        fromDate === "" ||
+                        saleDate >= fromDate;
+
+
+                    // To date filter
+                    const matchesToDate =
+                        toDate === "" ||
+                        saleDate <= toDate;
+
+
+                    const shouldShow =
+                        matchesSearch &&
+                        matchesStatus &&
+                        matchesCustomerType &&
+                        matchesFromDate &&
+                        matchesToDate;
+
+
+                    if (shouldShow) {
+
+                        row.style.display = "";
+
+                        visibleCount++;
+
+                    }
+                    else {
+
+                        row.style.display = "none";
+
+                    }
+
+                });
+
+
+                // Show no-results message.
+                if (noFilteredSalesRow) {
+
+                    if (
+                        visibleCount === 0 &&
+                        saleRows.length > 0
+                    ) {
+
+                        noFilteredSalesRow.style.display = "";
+
+                    }
+                    else {
+
+                        noFilteredSalesRow.style.display = "none";
+
+                    }
+
+                }
+
+            }
+
+
+            // Search while typing.
+            // No page reload occurs.
+            searchInput.addEventListener(
+                "input",
+                filterSales
+            );
+
+
+            // Status changes immediately.
+            statusInput.addEventListener(
+                "change",
+                filterSales
+            );
+
+
+            // Customer type changes immediately.
+            customerTypeInput.addEventListener(
+                "change",
+                filterSales
+            );
+
+
+            // From date changes immediately.
+            fromDateInput.addEventListener(
+                "change",
+                filterSales
+            );
+
+
+            // To date changes immediately.
+            toDateInput.addEventListener(
+                "change",
+                filterSales
+            );
+
+
+            // Reset everything without reloading.
+            resetButton.addEventListener(
+                "click",
+                function () {
+
+                    searchInput.value = "";
+                    statusInput.value = "";
+                    customerTypeInput.value = "";
+                    fromDateInput.value = "";
+                    toDateInput.value = "";
+
+                    filterSales();
+
+                }
+            );
+
+        });
+
+        
+        // ================================
+        // Sale Details Modal
+        // ================================
+
+        async function showSaleDetails(saleId) {
+
+            const modalElement =
+                document.getElementById("saleDetailsModal");
+
+            const loading =
+                document.getElementById("saleDetailsLoading");
+
+            const content =
+                document.getElementById("saleDetailsContent");
+
+            const error =
+                document.getElementById("saleDetailsError");
+
+
+            // Reset modal state.
+            loading.style.display = "";
+            content.style.display = "none";
+            error.style.display = "none";
+
+
+            // Show modal immediately.
+            const modal =
+                bootstrap.Modal.getOrCreateInstance(modalElement);
+
+            modal.show();
+
+
+            try {
+
+                const response =
+                    await fetch(`/Sales/GetSaleDetails/${saleId}`);
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Unable to load sale details."
+                    );
+
+                }
+
+
+                const sale =
+                    await response.json();
+
+
+                // ================================
+                // Sale Information
+                // ================================
+
+                document.getElementById(
+                    "saleDetailsSaleNumber"
+                ).textContent = sale.saleNumber;
+
+
+                document.getElementById(
+                    "detailSaleNumber"
+                ).textContent = sale.saleNumber;
+
+
+                document.getElementById(
+                    "detailSaleDate"
+                ).textContent =
+                    formatDate(sale.saleDate);
+
+
+                document.getElementById(
+                    "detailCashier"
+                ).textContent =
+                    sale.cashier;
+
+
+                // Status
+                const statusElement =
+                    document.getElementById("detailStatus");
+
+                if (sale.status === "Paid") {
+
+                    statusElement.className =
+                        "badge bg-success";
+
+                    statusElement.textContent =
+                        "Paid";
+
+                }
+                else if (sale.status === "PendingPayment") {
+
+                    statusElement.className =
+                        "badge bg-warning text-dark";
+
+                    statusElement.textContent =
+                        "Pending Payment";
+
+                }
+                else {
+
+                    statusElement.className =
+                        "badge bg-secondary";
+
+                    statusElement.textContent =
+                        sale.status;
+
+                }
+
+
+                // ================================
+                // Customer
+                // ================================
+
+                const customerElement =
+                    document.getElementById("detailCustomer");
+
+
+                if (sale.customer) {
+
+                    customerElement.innerHTML = `
+
+                        <div class="row g-3">
+
+                            <div class="col-md-4">
+
+                                <div class="text-muted small">
+                                    Name
+                                </div>
+
+                                <strong>
+                                    ${escapeHtml(sale.customer.name)}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <div class="text-muted small">
+                                    Phone
+                                </div>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        sale.customer.phone ||
+                                        "Not provided"
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <div class="text-muted small">
+                                    Email
+                                </div>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        sale.customer.email ||
+                                        "Not provided"
+                                    )}
+                                </strong>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+                else {
+
+                    customerElement.innerHTML = `
+
+                        <span class="text-muted">
+                            Walk-in Customer
+                        </span>
+
+                    `;
+
+                }
+
+
+                // ================================
+                // Sale Items
+                // ================================
+
+                const itemsElement =
+                    document.getElementById("detailItems");
+
+                itemsElement.innerHTML = "";
+
+
+                sale.items.forEach(function (item) {
+
+                    itemsElement.innerHTML += `
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    ${escapeHtml(item.productName)}
+                                </strong>
+                            </td>
+
+                            <td>
+                                ${escapeHtml(item.sku)}
+                            </td>
+
+                            <td class="text-center">
+                                ${item.quantity}
+                            </td>
+
+                            <td class="text-end">
+                                ₹${formatMoney(item.unitPrice)}
+                            </td>
+
+                            <td class="text-end">
+                                ₹${formatMoney(item.discountAmount)}
+                            </td>
+
+                            <td class="text-end">
+                                <strong>
+                                    ₹${formatMoney(item.subtotal)}
+                                </strong>
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                });
+
+
+                // ================================
+                // Amount Summary
+                // ================================
+
+                document.getElementById(
+                    "detailSubtotal"
+                ).textContent =
+                    `₹${formatMoney(sale.subtotal)}`;
+
+
+                document.getElementById(
+                    "detailDiscount"
+                ).textContent =
+                    `- ₹${formatMoney(sale.discountAmount)}`;
+
+
+                document.getElementById(
+                    "detailTax"
+                ).textContent =
+                    `₹${formatMoney(sale.taxAmount)}`;
+
+
+                document.getElementById(
+                    "detailGrandTotal"
+                ).textContent =
+                    `₹${formatMoney(sale.grandTotal)}`;
+
+
+                // ================================
+                // Payment
+                // ================================
+
+                const paymentElement =
+                    document.getElementById("detailPayment");
+
+
+                if (sale.payment) {
+
+                    paymentElement.innerHTML = `
+
+                        <div class="row g-3">
+
+                            <div class="col-md-3">
+
+                                <div class="text-muted small">
+                                    Payment Method
+                                </div>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        sale.payment.paymentMethod
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="text-muted small">
+                                    Amount
+                                </div>
+
+                                <strong>
+                                    ₹${formatMoney(
+                                        sale.payment.amount
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="text-muted small">
+                                    Payment Date
+                                </div>
+
+                                <strong>
+                                    ${formatDate(
+                                        sale.payment.paymentDate
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-3">
+
+                                <div class="text-muted small">
+                                    Status
+                                </div>
+
+                                <span class="badge bg-success">
+                                    ${escapeHtml(
+                                        sale.payment.status
+                                    )}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+                else {
+
+                    paymentElement.innerHTML = `
+
+                        <span class="text-muted">
+                            No payment has been recorded
+                            for this sale.
+                        </span>
+
+                    `;
+
+                }
+
+
+                // ================================
+                // Invoice
+                // ================================
+
+                const invoiceElement =
+                    document.getElementById("detailInvoice");
+
+
+                if (sale.invoice) {
+
+                    invoiceElement.innerHTML = `
+
+                        <div class="row g-3 align-items-center">
+
+                            <div class="col-md-4">
+
+                                <div class="text-muted small">
+                                    Invoice Number
+                                </div>
+
+                                <strong>
+                                    ${escapeHtml(
+                                        sale.invoice.invoiceNumber
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <div class="text-muted small">
+                                    Invoice Date
+                                </div>
+
+                                <strong>
+                                    ${formatDate(
+                                        sale.invoice.invoiceDate
+                                    )}
+                                </strong>
+
+                            </div>
+
+                            <div class="col-md-4">
+
+                                <a href="/Sales/InvoicePdf/${sale.invoice.invoiceId}"
+                                   target="_blank"
+                                   class="btn btn-outline-primary">
+
+                                    <i class="bi bi-printer me-1"></i>
+                                    Print Invoice
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+                else {
+
+                    invoiceElement.innerHTML = `
+
+                        <span class="text-muted">
+                            Invoice has not been generated
+                            for this sale.
+                        </span>
+
+                    `;
+
+                }
+
+
+                // Hide loading and show content.
+                loading.style.display = "none";
+                content.style.display = "";
+
+            }
+            catch (errorObject) {
+
+                console.error(errorObject);
+
+                loading.style.display = "none";
+                content.style.display = "none";
+                error.style.display = "";
+
+            }
+
+        }
+
+
+        // ================================
+        // Helper Functions
+        // ================================
+
+        function formatMoney(value) {
+
+            return Number(value).toLocaleString(
+                "en-IN",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+
+        }
+
+
+        function formatDate(value) {
+
+            if (!value)
+                return "-";
+
+
+            const date =
+                new Date(value);
+
+
+            if (isNaN(date.getTime()))
+                return value;
+
+
+            const day =
+                String(date.getDate()).padStart(2, "0");
+
+            const month =
+                String(date.getMonth() + 1).padStart(2, "0");
+
+            const year =
+                date.getFullYear();
+
+
+            const hours =
+                String(date.getHours()).padStart(2, "0");
+
+            const minutes =
+                String(date.getMinutes()).padStart(2, "0");
+
+
+            return `${day}-${month}-${year} ${hours}:${minutes}`;
+
+        }
+
+
+        function escapeHtml(value) {
+
+            if (value === null || value === undefined)
+                return "";
+
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+
+        }
+
+    </script>
+
+}

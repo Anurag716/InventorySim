@@ -2,14 +2,13 @@
 using Inventory.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using System.Data;
 using System.Security.Claims;
-
+using System.Text;
 
 namespace Inventory.Controllers
 {
@@ -22,6 +21,170 @@ namespace Inventory.Controllers
         {
             _context = context;
         }
+
+        // GET: Sales
+        [HttpGet]
+        public async Task<IActionResult> Index(
+                    string? search,
+                    string? status,
+                    DateTime? fromDate,
+                    DateTime? toDate)
+        {
+            var query = _context.Sales
+                .Include(s => s.Customer)
+                .Include(s => s.CashierUser)
+                .Include(s => s.Payments)
+                .Include(s => s.Invoices)
+                .AsQueryable();
+
+            // Cashier can only see their own sales.
+            if (User.IsInRole("Cashier"))
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                    return Unauthorized();
+
+                if (!int.TryParse(userIdClaim.Value, out int userId))
+                    return Unauthorized();
+
+                query = query.Where(s => s.CashierUserId == userId);
+            }
+
+
+            // Search by sale number or customer name.
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.Trim();
+
+                query = query.Where(s =>
+                    s.SaleNumber.Contains(search) ||
+                    (s.Customer != null &&
+                     s.Customer.Name.Contains(search)));
+            }
+
+            // Filter by status.
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(s => s.Status == status);
+            }
+
+            // Filter by starting date.
+            if (fromDate.HasValue)
+            {
+                query = query.Where(s =>
+                    s.SaleDate >= fromDate.Value.Date);
+            }
+
+            // Filter by ending date.
+            if (toDate.HasValue)
+            {
+                var endDate = toDate.Value.Date.AddDays(1);
+
+                query = query.Where(s =>
+                    s.SaleDate < endDate);
+            }
+
+            var sales = await query
+                .OrderByDescending(s => s.SaleDate)
+                .ToListAsync();
+
+            ViewBag.Search = search;
+            ViewBag.Status = status;
+            ViewBag.FromDate = fromDate?.ToString("yyyy-MM-dd");
+            ViewBag.ToDate = toDate?.ToString("yyyy-MM-dd");
+
+            return View(sales);
+        }
+
+        // GET: Sales/Details/5
+        [HttpGet]
+        public async Task<IActionResult> GetSaleDetails(int id)
+        {
+            var sale = await _context.Sales
+                .Include(s => s.Customer)
+                .Include(s => s.CashierUser)
+                .Include(s => s.Saleitems)
+                    .ThenInclude(si => si.Product)
+                .Include(s => s.Payments)
+                .Include(s => s.Invoices)
+                .FirstOrDefaultAsync(s => s.SaleId == id);
+
+            if (sale == null)
+                return NotFound();
+
+            // Cashier can only view their own sales.
+            if (User.IsInRole("Cashier"))
+            {
+                var userIdClaim =
+                    User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null)
+                    return Unauthorized();
+
+                if (!int.TryParse(userIdClaim.Value, out int userId))
+                    return Unauthorized();
+
+                if (sale.CashierUserId != userId)
+                    return Forbid();
+            }
+
+            return Json(new
+            {
+                saleId = sale.SaleId,
+                saleNumber = sale.SaleNumber,
+                saleDate = sale.SaleDate,
+                status = sale.Status,
+
+                customer = sale.Customer == null
+                    ? null
+                    : new
+                    {
+                        name = sale.Customer.Name,
+                        phone = sale.Customer.Phone,
+                        email = sale.Customer.Email
+                    },
+
+                cashier = sale.CashierUser.FullName,
+
+                items = sale.Saleitems.Select(item => new
+                {
+                    productName = item.Product.Name,
+                    sku = item.Product.Sku,
+                    quantity = item.Quantity,
+                    unitPrice = item.UnitPrice,
+                    discountAmount = item.DiscountAmount,
+                    subtotal = item.Subtotal
+                }),
+
+                subtotal = sale.Subtotal,
+                discountAmount = sale.DiscountAmount,
+                taxAmount = sale.TaxAmount,
+                grandTotal = sale.GrandTotal,
+
+                payment = sale.Payments
+                    .OrderByDescending(p => p.PaymentId)
+                    .Select(p => new
+                    {
+                        paymentMethod = p.PaymentMethod,
+                        amount = p.Amount,
+                        paymentDate = p.PaymentDate,
+                        status = p.Status
+                    })
+                    .FirstOrDefault(),
+
+                invoice = sale.Invoices
+                    .OrderByDescending(i => i.InvoiceId)
+                    .Select(i => new
+                    {
+                        invoiceId = i.InvoiceId,
+                        invoiceNumber = i.InvoiceNumber,
+                        invoiceDate = i.InvoiceDate
+                    })
+                    .FirstOrDefault()
+            });
+        }
+
 
         // GET: Sales/Create
         [HttpGet]
@@ -776,5 +939,64 @@ namespace Inventory.Controllers
                 .Padding(5);
         }
 
+        // sales Export to CSV
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> ExportCsv()
+        {
+            var sales = await _context.Sales
+                .Include(s => s.Customer)
+                .Include(s => s.CashierUser)
+                .Include(s => s.Payments)
+                .Include(s => s.Invoices)
+                .OrderByDescending(s => s.SaleDate)
+                .ToListAsync();
+
+            var csv = new StringBuilder();
+
+            csv.AppendLine(
+                "Sale ID,Sale Number,Customer,Cashier,Sale Date,Subtotal,Discount,Tax,Grand Total,Status,Payment Method,Invoice Number");
+
+            foreach (var sale in sales)
+            {
+                var payment = sale.Payments
+                    .OrderByDescending(p => p.PaymentId)
+                    .FirstOrDefault();
+
+                var invoice = sale.Invoices
+                    .OrderByDescending(i => i.InvoiceId)
+                    .FirstOrDefault();
+
+                var customerName =
+                    sale.Customer?.Name ?? "Walk-in Customer";
+
+                var paymentMethod =
+                    payment?.PaymentMethod ?? "";
+
+                var invoiceNumber =
+                    invoice?.InvoiceNumber ?? "";
+
+                csv.AppendLine(
+                    $"{sale.SaleId}," +
+                    $"\"{sale.SaleNumber.Replace("\"", "\"\"")}\"," +
+                    $"\"{customerName.Replace("\"", "\"\"")}\"," +
+                    $"\"{sale.CashierUser.FullName.Replace("\"", "\"\"")}\"," +
+                    $"{sale.SaleDate:yyyy-MM-dd HH:mm:ss}," +
+                    $"{sale.Subtotal:F2}," +
+                    $"{sale.DiscountAmount:F2}," +
+                    $"{sale.TaxAmount:F2}," +
+                    $"{sale.GrandTotal:F2}," +
+                    $"\"{sale.Status.Replace("\"", "\"\"")}\"," +
+                    $"\"{paymentMethod.Replace("\"", "\"\"")}\"," +
+                    $"\"{invoiceNumber.Replace("\"", "\"\"")}\"");
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+            return File(
+                bytes,
+                "text/csv",
+                "Sales.csv");
+        }
     }
 }
