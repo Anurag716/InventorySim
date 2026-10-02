@@ -1,0 +1,719 @@
+﻿@model Inventory.ViewModels.ReturnCreateViewModel
+
+@{
+    ViewData["Title"] = "Return Sale";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1">Return Sale</h2>
+        <p class="text-muted mb-0">
+            Process a return for sale
+            <strong>@Model.SaleNumber</strong>.
+        </p>
+    </div>
+
+    <a asp-controller="Sales"
+       asp-action="Index"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Sales
+    </a>
+</div>
+
+<div class="row g-4">
+
+    <!-- Sale Information -->
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-receipt me-2"></i>
+                    Sale Information
+                </h5>
+            </div>
+
+            <div class="card-body">
+                <div class="row">
+
+                    <div class="col-md-4">
+                        <small class="text-muted">
+                            Sale Number
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.SaleNumber
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-muted">
+                            Customer
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.CustomerName
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <small class="text-muted">
+                            Sale Date
+                        </small>
+
+                        <div class="fw-semibold">
+                            @Model.SaleDate.ToString("dd-MM-yyyy HH:mm")
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Products -->
+    <div class="col-lg-8">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Products
+                </h5>
+            </div>
+
+            <div class="card-body p-0">
+
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th>Product</th>
+                                <th>Purchased</th>
+                                <th>Returned</th>
+                                <th>Returnable</th>
+                                <th style="width: 140px;">
+                                    Return Qty
+                                </th>
+                                <th class="text-end">
+                                    Refund
+                                </th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @for (int i = 0; i < Model.Items.Count; i++)
+                            {
+                                <tr class="return-item-row"
+                                    data-index="@i"
+                                    data-unit-price="@Model.Items[i].UnitPrice">
+
+                                    <td>
+                                        <div class="fw-semibold">
+                                            @Model.Items[i].ProductName
+                                        </div>
+
+                                        <small class="text-muted">
+                                            @Model.Items[i].Sku
+                                        </small>
+                                    </td>
+
+                                    <td>
+                                        @Model.Items[i].PurchasedQuantity
+                                    </td>
+
+                                    <td>
+                                        @Model.Items[i].AlreadyReturnedQuantity
+                                    </td>
+
+                                    <td>
+                                        @if (Model.Items[i].ReturnableQuantity > 0)
+                                        {
+                                            <span class="badge bg-success">
+                                                @Model.Items[i].ReturnableQuantity
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                0
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <input type="number"
+                                               class="form-control return-quantity"
+                                               name="Items[@i].ReturnQuantity"
+                                               value="0"
+                                               min="0"
+                                               max="@Model.Items[i].ReturnableQuantity"
+                                               data-index="@i"
+                                        @(Model.Items[i].ReturnableQuantity == 0 ? "disabled" : "") />
+
+                                        <input type="hidden"
+                                               name="Items[@i].SaleItemId"
+                                               value="@Model.Items[i].SaleItemId" />
+                                    </td>
+
+                                    <td class="text-end fw-semibold">
+                                        ₹<span class="refund-amount">0.00</span>
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Return Summary -->
+    <div class="col-lg-4">
+
+        <div class="card shadow-sm border-0">
+
+            <div class="card-header bg-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-cash-stack me-2"></i>
+                    Return Summary
+                </h5>
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Return Reason <span class="text-danger">*</span>
+                    </label>
+
+                    <textarea id="reason"
+                              class="form-control"
+                              rows="4"
+                              maxlength="500"
+                              placeholder="Enter reason for return..."
+                              required></textarea>
+                    <span asp-validation-for="Reason"
+                          class="text-danger"></span>
+
+                </div>
+
+                <div class="border-top pt-3">
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>
+                            Refund Amount
+                        </span>
+
+                        <strong id="totalRefund">
+                            ₹0.00
+                        </strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+
+                        <span>
+                            Refund Method
+                        </span>
+
+                        <strong>
+                            Cash
+                        </strong>
+
+                    </div>
+
+                </div>
+
+                <div class="alert alert-info mt-3 mb-0">
+
+                    <i class="bi bi-info-circle me-1"></i>
+
+                    The refund will be processed in cash.
+                    The original sale discount is considered
+                    when calculating the refund.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- Bottom Actions -->
+
+<div class="d-flex justify-content-end gap-2 mt-4">
+
+    <a asp-controller="Sales"
+       asp-action="Index"
+       class="btn btn-outline-secondary">
+
+        Cancel
+
+    </a>
+
+    <form id="returnForm"
+          asp-controller="Returns"
+          asp-action="Create"
+          method="post">
+
+        @Html.AntiForgeryToken()
+
+        <input type="hidden"
+               name="SaleId"
+               value="@Model.SaleId" />
+
+        <input type="hidden"
+               name="Reason"
+               id="reasonHidden" />
+
+        @for (int i = 0; i < Model.Items.Count; i++)
+        {
+            <input type="hidden"
+                   name="Items[@i].SaleItemId"
+                   value="@Model.Items[i].SaleItemId" />
+
+            <input type="hidden"
+                   name="Items[@i].ReturnQuantity"
+                   id="returnQuantity_@i"
+                   value="0" />
+        }
+
+    </form>
+
+    <button type="button"
+            id="processReturnButton"
+            class="btn btn-danger"
+            disabled>
+
+        <i class="bi bi-arrow-return-left me-1"></i>
+        Process Return
+
+    </button>
+
+</div>
+
+<div id="returnProcessingOverlay"
+     class="return-processing-overlay d-none">
+
+    <div class="return-processing-card">
+
+        <div id="returnSpinner">
+
+            <div class="spinner-border text-primary mb-3"
+                 role="status">
+            </div>
+
+            <h5>
+                Processing Return...
+            </h5>
+
+            <p class="text-muted mb-0">
+                Please wait while we process the return.
+            </p>
+
+        </div>
+
+
+        <div id="returnSuccess"
+             class="d-none">
+
+            <div class="return-success-icon mb-3">
+                <i class="bi bi-check-lg"></i>
+            </div>
+
+            <h4 class="text-success mb-2">
+                Return Successful
+            </h4>
+
+            <p id="returnSuccessMessage"
+               class="text-muted mb-4">
+            </p>
+
+            <div class="cash-refund-box mb-4">
+
+                <div class="text-muted small mb-1">
+                    CASH REFUND
+                </div>
+
+                <div id="cashRefundAmount"
+                     class="cash-refund-amount">
+                    ₹0.00
+                </div>
+
+                <div class="text-muted mt-2">
+                    Please hand this amount to the customer.
+                </div>
+
+            </div>
+
+            <button type="button"
+                    id="returnDoneButton"
+                    class="btn btn-primary btn-lg px-5">
+
+                <i class="bi bi-check-circle me-2"></i>
+                Done
+
+            </button>
+
+        </div>
+
+        <div id="returnError"
+             class="d-none">
+
+            <div class="return-error-icon mb-3">
+                <i class="bi bi-x-lg"></i>
+            </div>
+
+            <h4 class="text-danger">
+                Return Failed
+            </h4>
+
+            <p id="returnErrorMessage"
+               class="text-muted mb-0">
+            </p>
+
+            <button type="button"
+                    class="btn btn-outline-secondary mt-3"
+                    onclick="closeReturnOverlay()">
+                Close
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<style>
+    .return-processing-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(6px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .return-processing-overlay.d-none {
+            display: none !important;
+        }
+
+    .cash-refund-box {
+        background: #f8f9fa;
+        border: 2px solid #198754;
+        border-radius: 12px;
+        padding: 20px;
+    }
+
+    .cash-refund-amount {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #198754;
+    }
+
+    .return-processing-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px;
+        width: 420px;
+        max-width: 90%;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .return-success-icon,
+    .return-error-icon {
+        width: 70px;
+        height: 70px;
+        margin-left: auto;
+        margin-right: auto;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+    }
+
+    .return-success-icon {
+        background: #d1e7dd;
+        color: #198754;
+    }
+
+    .return-error-icon {
+        background: #f8d7da;
+        color: #dc3545;
+    }
+</style>
+
+@section Scripts {
+
+    <script>
+
+        const saleId = @Model.SaleId;
+
+        function formatMoney(value) {
+
+            return Number(value).toLocaleString("en-IN", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+
+        }
+
+
+        function calculateRefunds() {
+
+            let totalRefund = 0;
+            let hasReturnQuantity = false;
+
+            document
+                .querySelectorAll(".return-item-row")
+                .forEach(function (row) {
+
+                    const quantityInput =
+                        row.querySelector(".return-quantity");
+
+                    const refundElement =
+                        row.querySelector(".refund-amount");
+
+                    const unitPrice =
+                        Number(row.dataset.unitPrice);
+
+                    const maxQuantity =
+                        Number(quantityInput.max);
+
+                    let quantity =
+                        Number(quantityInput.value);
+
+                    if (isNaN(quantity) || quantity < 0) {
+                        quantity = 0;
+                        quantityInput.value = 0;
+                    }
+
+                    if (quantity > maxQuantity) {
+
+                        quantity = maxQuantity;
+
+                        quantityInput.value =
+                            maxQuantity;
+                    }
+
+                    const refund =
+                        quantity * unitPrice;
+
+                    refundElement.textContent =
+                        formatMoney(refund);
+
+                    totalRefund += refund;
+
+                    if (quantity > 0) {
+                        hasReturnQuantity = true;
+                    }
+
+                });
+
+
+            document.getElementById("totalRefund")
+                .textContent =
+                "₹" + formatMoney(totalRefund);
+
+
+            document.getElementById("processReturnButton")
+                .disabled = !hasReturnQuantity;
+
+        }
+
+
+        document
+            .querySelectorAll(".return-quantity")
+            .forEach(function (input) {
+
+                input.addEventListener(
+                    "input",
+                    calculateRefunds
+                );
+
+            });
+
+
+        calculateRefunds();
+
+        document
+            .getElementById("processReturnButton")
+            .addEventListener("click", async function () {
+
+                const button = this;
+
+                const reason =
+                    document.getElementById("reason").value;
+
+                const reasonHidden =
+                    document.getElementById("reasonHidden");
+
+                reasonHidden.value = reason;
+
+
+                // Copy visible quantities into hidden fields.
+                document
+                    .querySelectorAll(".return-quantity")
+                    .forEach(function (input) {
+
+                        const index =
+                            input.dataset.index;
+
+                        const hidden =
+                            document.getElementById(
+                                "returnQuantity_" + index
+                            );
+
+                        hidden.value =
+                            input.value || "0";
+
+                    });
+
+
+                const form =
+                    document.getElementById("returnForm");
+
+                const formData =
+                    new FormData(form);
+
+
+                const overlay =
+                    document.getElementById(
+                        "returnProcessingOverlay"
+                    );
+
+                const spinner =
+                    document.getElementById("returnSpinner");
+
+                const success =
+                    document.getElementById("returnSuccess");
+
+                const error =
+                    document.getElementById("returnError");
+
+
+                overlay.classList.remove("d-none");
+
+                spinner.classList.remove("d-none");
+                success.classList.add("d-none");
+                error.classList.add("d-none");
+
+                button.disabled = true;
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            form.action,
+                            {
+                                method: "POST",
+                                body: formData
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    spinner.classList.add("d-none");
+
+
+                    if (response.ok && result.success) {
+
+                        document
+                            .getElementById(
+                                "returnSuccessMessage"
+                            )
+                            .textContent =
+                            `Return ${result.returnNumber} processed successfully. ` +
+                            `Cash refund: ₹${formatMoney(result.refundAmount)}.`;
+
+
+                        success.classList.remove("d-none");
+                        document
+                            .getElementById("cashRefundAmount")
+                            .textContent =
+                            "₹" + formatMoney(result.refundAmount);
+
+                            document
+        .getElementById("returnDoneButton")
+        .addEventListener("click", function () {
+
+            window.location.href = "/Returns";
+
+        });
+
+                    }
+                    else {
+
+                        document
+                            .getElementById(
+                                "returnErrorMessage"
+                            )
+                            .textContent =
+                            result.message ||
+                            "Unable to process the return.";
+
+                        error.classList.remove("d-none");
+
+                        button.disabled = false;
+
+                    }
+
+                }
+                catch (error) {
+
+                    spinner.classList.add("d-none");
+
+                    document
+                        .getElementById(
+                            "returnErrorMessage"
+                        )
+                        .textContent =
+                        "An unexpected error occurred.";
+
+                    error.classList.remove("d-none");
+
+                    button.disabled = false;
+
+                }
+
+            });
+
+
+        function closeReturnOverlay() {
+
+            document
+                .getElementById("returnProcessingOverlay")
+                .classList.add("d-none");
+
+        }
+
+    </script>
+
+}

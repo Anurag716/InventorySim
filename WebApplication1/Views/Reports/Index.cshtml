@@ -1,0 +1,2672 @@
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="mb-1">Reports</h2>
+        <p class="text-muted mb-0">
+            Analyze sales, products, returns, customers, income and inventory.
+        </p>
+    </div>
+
+    <!-- Filters -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label for="fromDate" class="form-label">From Date</label>
+                    <input type="date"
+                           id="fromDate"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label for="toDate" class="form-label">To Date</label>
+                    <input type="date"
+                           id="toDate"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-3">
+                    <label for="reportType" class="form-label">Report</label>
+                    <select id="reportType" class="form-select">
+                        <option value="Sales">Sales</option>
+                        <option value="Products">Products</option>
+                        <option value="Returns">Returns</option>
+                        <option value="Customers">Customers</option>
+                        <option value="Income">Income</option>
+                        <option value="Inventory">Inventory</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <button type="button"
+                            id="exportReportBtn"
+                            class="btn btn-outline-success w-100">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>
+                        Export XLSX
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row g-4 mb-4">
+
+        <div id="barChartColumn" class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div id="barChartContainer" class="report-chart-container">
+                        <div class="report-empty-state">
+                            <i class="bi bi-bar-chart fs-1 mb-2"></i>
+                            <div class="fw-semibold">Report chart will appear here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pieChartColumn" class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <div id="pieChartContainer" class="report-chart-container">
+                        <div class="report-empty-state">
+                            <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                            <div class="fw-semibold">Report chart will appear here.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Report Data -->
+    <div class="card shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0">Report Data</h5>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead id="reportTableHead">
+                        <tr>
+                            <th>No data</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTableBody">
+                        <tr>
+                            <td class="text-center text-muted py-4">
+                                Report data will appear here.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    /* =========================================
+       REPORT CHART CONTAINERS
+       ========================================= */
+
+    .report-chart-container {
+        position: relative;
+        width: 100%;
+        height: 400px;
+        padding: 0;
+        transition: transform 0.25s ease, filter 0.25s ease;
+    }
+
+    .report-chart-container:hover {
+        transform: translateY(-2px);
+        filter: drop-shadow(0 8px 18px rgba(13, 110, 253, 0.08));
+    }
+
+    /* =========================================
+       CHART HEADER
+       ========================================= */
+
+    .report-chart-header {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 5;
+        padding: 0 10px;
+        pointer-events: none;
+    }
+
+    .report-chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+    }
+
+    .report-chart-subtitle {
+        font-size: 12px;
+        color: #6c757d;
+        margin-top: 3px;
+    }
+
+    /* =========================================
+       CANVAS AREA
+       ========================================= */
+
+    .report-chart-canvas {
+        position: absolute;
+        top: 48px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: calc(100% - 48px);
+    }
+
+    .report-chart-canvas canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* =========================================
+       EMPTY / LOADING STATE
+       ========================================= */
+
+    .report-empty-state {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: #6c757d;
+    }
+
+    .report-empty-state i {
+        opacity: 0.65;
+    }
+
+    /* =========================================
+       TABLE
+       ========================================= */
+
+    #reportTableHead th {
+        white-space: nowrap;
+        font-size: 0.875rem;
+    }
+
+    #reportTableBody td {
+        white-space: nowrap;
+        font-size: 0.875rem;
+    }
+
+    /* =========================================
+       RESPONSIVE
+       ========================================= */
+
+    @@media (max-width: 992px) {
+        .report-chart-container {
+            height: 350px;
+        }
+
+        .report-chart-canvas {
+            top: 45px;
+            height: calc(100% - 45px);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .report-chart-container {
+            height: 320px;
+        }
+
+        .report-chart-header {
+            padding: 0 5px;
+        }
+
+        .report-chart-title {
+            font-size: 15px;
+        }
+
+        .report-chart-subtitle {
+            font-size: 11px;
+        }
+
+        .report-chart-canvas {
+            top: 43px;
+            height: calc(100% - 43px);
+        }
+    }
+</style>
+
+@section Scripts {
+
+    <!-- Chart.js must load before the report JavaScript uses Chart. -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // =========================================================
+        // GLOBAL STATE
+        // =========================================================
+
+        let salesBarChart = null;
+        let salesPieChart = null;
+        let productsBarChart = null;
+        let returnsBarChart = null;
+        let returnsLineChart = null;
+        let customersSpendingChart = null;
+        let incomeLineChart = null;
+        let incomeBreakdownChart = null;
+        let customersPurchasesChart = null;
+        let inventoryStockChart = null;
+        let inventoryStatusChart = null;
+        let currentReportData = [];
+        let currentReportType = "Sales";
+
+
+        // =========================================================
+        // PAGE INITIALIZATION
+        // =========================================================
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const fromDate = document.getElementById("fromDate");
+            const toDate = document.getElementById("toDate");
+            const reportType = document.getElementById("reportType");
+            const exportButton = document.getElementById("exportReportBtn");
+
+            if (fromDate) {
+                fromDate.addEventListener("change", loadReport);
+            }
+
+            if (toDate) {
+                toDate.addEventListener("change", loadReport);
+            }
+
+            if (reportType) {
+                reportType.addEventListener("change", loadReport);
+            }
+
+            if (exportButton) {
+                exportButton.addEventListener("click", exportCurrentReport);
+            }
+
+            loadReport();
+        });
+
+
+        // =========================================================
+        // LOAD REPORT
+        // =========================================================
+
+        async function loadReport() {
+
+            const reportTypeElement = document.getElementById("reportType");
+            const fromDateElement = document.getElementById("fromDate");
+            const toDateElement = document.getElementById("toDate");
+
+            const reportType = reportTypeElement?.value || "Sales";
+            const fromDate = fromDateElement?.value || "";
+            const toDate = toDateElement?.value || "";
+
+            currentReportType = reportType;
+            currentReportData = [];
+
+            // Prevent an invalid date range from making a request.
+            if (fromDate && toDate && fromDate > toDate) {
+                clearReportDisplay();
+                renderMessage(
+                    "Invalid date range",
+                    "From Date cannot be later than To Date."
+                );
+                return;
+            }
+
+            showLoadingState();
+
+            const params = new URLSearchParams();
+
+            if (fromDate) params.append("fromDate", fromDate);
+            if (toDate) params.append("toDate", toDate);
+
+            const endpointMap = {
+                Sales: "/Reports/GetSalesReport",
+                Products: "/Reports/GetProductsReport",
+                Returns: "/Reports/GetReturnsReport",
+                Customers: "/Reports/GetCustomersReport",
+                Income: "/Reports/GetIncomeReport",
+                Inventory: "/Reports/GetInventoryReport"
+
+            };
+
+            const endpoint = endpointMap[reportType];
+
+            if (!endpoint) {
+                clearReportDisplay();
+                renderMessage(
+                    `${reportType} report is not implemented yet`,
+                    "The report structure is ready. This report type will be connected to its backend endpoint next."
+                );
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `${endpoint}?${params.toString()}`,
+                    {
+                        method: "GET",
+                        headers: { "Accept": "application/json" }
+                    }
+                );
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error("The server returned an unsuccessful response.");
+                }
+
+                currentReportData = Array.isArray(result.data) ? result.data : [];
+
+                if (reportType === "Sales") {
+                    renderSalesTable(currentReportData);
+                    renderSalesCharts(currentReportData);
+                } else if (reportType === "Products") {
+                    renderProductsTable(currentReportData);
+                    renderProductsChart(currentReportData);
+                } else if (reportType === "Returns") {
+                    renderReturnsTable(currentReportData);
+                    renderReturnsCharts(currentReportData);
+                } else if (reportType === "Customers") {
+                    renderCustomersTable(currentReportData);
+                    renderCustomersCharts(currentReportData);
+                } else if (reportType === "Income") {
+                    renderIncomeTable(currentReportData);
+                    renderIncomeChart(currentReportData);
+                }else if (reportType === "Inventory") {
+                    renderInventoryTable(currentReportData);
+                    renderInventoryCharts(currentReportData);
+                }
+            }
+            catch (error) {
+                console.error(`Error loading ${reportType.toLowerCase()} report:`, error);
+                currentReportData = [];
+                clearReportDisplay();
+                renderMessage(
+                    "Unable to load report",
+                    `Something went wrong while loading the ${reportType.toLowerCase()} report. Check the browser console and server endpoint.`
+                );
+            }
+        }
+
+        // =========================================================
+        // RENDER GENERAL MESSAGE
+        // =========================================================
+
+        function renderMessage(title, message) {
+
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+
+            if (barContainer) {
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-bar-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">${escapeHtml(title)}</div>
+                        <small>${escapeHtml(message)}</small>
+                    </div>`;
+            }
+
+            if (pieContainer) {
+                pieContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">${escapeHtml(title)}</div>
+                        <small>${escapeHtml(message)}</small>
+                    </div>`;
+            }
+
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (tableHead) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+            }
+
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            ${escapeHtml(message)}
+                        </td>
+                    </tr>`;
+            }
+        }
+
+
+        // =========================================================
+        // LOADING STATE
+        // =========================================================
+
+        function showLoadingState() {
+
+            destroyCharts();
+
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+
+            if (barContainer) {
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <div class="fw-semibold">Loading report...</div>
+                    </div>`;
+            }
+
+            if (pieContainer) {
+                pieContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <div class="spinner-border text-primary mb-3" role="status"></div>
+                        <div class="fw-semibold">Loading chart...</div>
+                    </div>`;
+            }
+
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (tableHead) {
+                tableHead.innerHTML = `<tr><th>Loading...</th></tr>`;
+            }
+
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            Loading report data...
+                        </td>
+                    </tr>`;
+            }
+        }
+
+
+        // =========================================================
+        // CLEAR REPORT DISPLAY
+        // =========================================================
+
+        function clearReportDisplay() {
+
+            const barColumn = document.getElementById("barChartColumn");
+            const pieColumn = document.getElementById("pieChartColumn");
+
+            if (barColumn) barColumn.className = "col-lg-6";
+            if (pieColumn) {
+                pieColumn.className = "col-lg-6";
+                pieColumn.style.display = "";
+            }
+
+            destroyCharts();
+
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (barContainer) {
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-bar-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">No chart data</div>
+                    </div>`;
+            }
+
+            if (pieContainer) {
+                pieContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">No chart data</div>
+                    </div>`;
+            }
+
+            if (tableHead) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+            }
+
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            No report data available.
+                        </td>
+                    </tr>`;
+            }
+        }
+
+
+        // =========================================================
+        // DESTROY EXISTING CHARTS
+        // =========================================================
+
+        function destroyCharts() {
+
+            if (salesBarChart) {
+                salesBarChart.destroy();
+                salesBarChart = null;
+            }
+
+            if (salesPieChart) {
+                salesPieChart.destroy();
+                salesPieChart = null;
+            }
+
+            if (productsBarChart) {
+                productsBarChart.destroy();
+                productsBarChart = null;
+            }
+
+            if (returnsBarChart) {
+                returnsBarChart.destroy();
+                returnsBarChart = null;
+            }
+
+            if (returnsLineChart) {
+                returnsLineChart.destroy();
+                returnsLineChart = null;
+            }
+
+            if (customersSpendingChart) {
+                customersSpendingChart.destroy();
+                customersSpendingChart = null;
+            }
+
+            if (customersPurchasesChart) {
+                customersPurchasesChart.destroy();
+                customersPurchasesChart = null;
+            }
+
+            if (incomeLineChart) {
+                incomeLineChart.destroy();
+                incomeLineChart = null;
+            }
+
+            if (incomeBreakdownChart) {
+                incomeBreakdownChart.destroy();
+                incomeBreakdownChart = null;
+            }
+            if (inventoryStockChart) {
+                inventoryStockChart.destroy();
+                inventoryStockChart = null;
+            }
+
+            if (inventoryStatusChart) {
+                inventoryStatusChart.destroy();
+                inventoryStatusChart = null;
+            }
+        }
+
+
+        // =========================================================
+        // RENDER SALES TABLE
+        // =========================================================
+
+        function renderSalesTable(sales) {
+
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (!tableHead || !tableBody) {
+                return;
+            }
+
+            if (!sales || sales.length === 0) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            No sales found for the selected period.
+                        </td>
+                    </tr>`;
+
+                return;
+            }
+
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Sale Number</th>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Cashier</th>
+                    <th>Subtotal</th>
+                    <th>Discount</th>
+                    <th>Tax</th>
+                    <th>Grand Total</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                </tr>`;
+
+            tableBody.innerHTML = sales.map(sale => {
+
+                const saleDate = sale.date
+                    ? new Date(sale.date)
+                    : null;
+
+                const formattedDate = saleDate && !isNaN(saleDate)
+                    ? saleDate.toLocaleDateString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric"
+                    })
+                    : "-";
+
+                const status = sale.status || "-";
+
+                let statusClass = "bg-secondary";
+
+                if (status === "Paid") {
+                    statusClass = "bg-success";
+                }
+                else if (status === "PendingPayment") {
+                    statusClass = "bg-warning text-dark";
+                }
+
+                return `
+                    <tr>
+                        <td class="fw-semibold">
+                            ${escapeHtml(sale.saleNumber || "-")}
+                        </td>
+                        <td>${formattedDate}</td>
+                        <td>
+                            ${escapeHtml(sale.customer || "Walk-in Customer")}
+                        </td>
+                        <td>
+                            ${escapeHtml(sale.cashier || "-")}
+                        </td>
+                        <td>${formatCurrency(sale.subtotal)}</td>
+                        <td>${formatCurrency(sale.discount)}</td>
+                        <td>${formatCurrency(sale.tax)}</td>
+                        <td class="fw-semibold">
+                            ${formatCurrency(sale.grandTotal)}
+                        </td>
+                        <td>
+                            ${escapeHtml(sale.paymentMethod || "-")}
+                        </td>
+                        <td>
+                            <span class="badge ${statusClass}">
+                                ${escapeHtml(status)}
+                            </span>
+                        </td>
+                    </tr>`;
+            }).join("");
+        }
+
+
+        // =========================================================
+        // RENDER PRODUCTS TABLE
+        // =========================================================
+
+        function renderProductsTable(products) {
+
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (!tableHead || !tableBody) return;
+
+            if (!products || products.length === 0) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            No product sales found for the selected period.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity Sold</th>
+                    <th>Sales Amount</th>
+                </tr>`;
+
+            tableBody.innerHTML = products.map(product => `
+                <tr>
+                    <td class="fw-semibold">${escapeHtml(product.productName || "-")}</td>
+                    <td>${Number(product.quantitySold || 0).toLocaleString("en-IN")}</td>
+                    <td class="fw-semibold">${formatCurrency(product.salesAmount)}</td>
+                </tr>`
+            ).join("");
+        }
+
+
+        // =========================================================
+        // RENDER PRODUCTS CHART
+        // =========================================================
+
+        function renderProductsChart(products) {
+
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+            const barColumn = document.getElementById("barChartColumn");
+            const pieColumn = document.getElementById("pieChartColumn");
+
+            if (!barContainer || !pieContainer || !barColumn || !pieColumn) return;
+
+            destroyCharts();
+
+            // Products needs only one visualization, so use the full width.
+            barColumn.className = "col-12";
+            pieColumn.style.display = "none";
+
+            if (!products || products.length === 0) {
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-box-seam fs-1 mb-2"></i>
+                        <div class="fw-semibold">No product data</div>
+                        <small>No products were sold during the selected period.</small>
+                    </div>`;
+                return;
+            }
+
+            barContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Top Products by Quantity Sold</div>
+                    <div class="report-chart-subtitle">Highest-selling products by units</div>
+                </div>
+                <div class="report-chart-canvas">
+                    <canvas id="productsBarChart"></canvas>
+                </div>`;
+
+            const chartProducts = products.slice(0, 10);
+            const labels = chartProducts.map(p => p.productName || "Unknown Product");
+            const values = chartProducts.map(p => Number(p.quantitySold || 0));
+            const canvas = document.getElementById("productsBarChart");
+
+            if (!canvas) return;
+
+            const context = canvas.getContext("2d");
+            const gradient = context.createLinearGradient(0, 0, 600, 0);
+            gradient.addColorStop(0, "#0d6efd");
+            gradient.addColorStop(0.55, "#4f9cff");
+            gradient.addColorStop(1, "#8abfff");
+
+            const hoverGradient = context.createLinearGradient(0, 0, 600, 0);
+            hoverGradient.addColorStop(0, "#084298");
+            hoverGradient.addColorStop(0.55, "#0d6efd");
+            hoverGradient.addColorStop(1, "#6faeff");
+
+            productsBarChart = new Chart(canvas, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Quantity Sold",
+                        data: values,
+                        backgroundColor: gradient,
+                        hoverBackgroundColor: hoverGradient,
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: 0.65,
+                        categoryPercentage: 0.72
+                    }]
+                },
+                options: {
+                    indexAxis: "y",
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 700, easing: "easeOutQuart" },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(18, 24, 38, 0.96)",
+                            titleColor: "#ffffff",
+                            bodyColor: "#ffffff",
+                            padding: 13,
+                            cornerRadius: 10,
+                            displayColors: false,
+                            callbacks: {
+                                label: function (context) {
+                                    return " " + Number(context.raw || 0).toLocaleString("en-IN") + " units sold";
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: "rgba(0, 0, 0, 0.055)", drawTicks: false },
+                            border: { display: false },
+                            ticks: { color: "#6c757d", padding: 8, precision: 0, font: { size: 11 } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            border: { display: false },
+                            ticks: { color: "#495057", padding: 8, font: { size: 11, weight: "500" } }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // =========================================================
+        // RENDER RETURNS TABLE
+        // =========================================================
+
+        function renderReturnsTable(returns) {
+
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+
+            if (!tableHead || !tableBody) return;
+
+            if (!returns || returns.length === 0) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+                tableBody.innerHTML = `
+                    <tr>
+                        <td class="text-center text-muted py-4">
+                            No completed returns found for the selected period.
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            tableHead.innerHTML = `
+                <tr>
+                    <th>Return Number</th>
+                    <th>Sale Number</th>
+                    <th>Return Date</th>
+                    <th>Refund Amount</th>
+                    <th>Processed By</th>
+                    <th>Reason</th>
+                </tr>`;
+
+            tableBody.innerHTML = returns.map(item => {
+                const date = item.returnDate
+                    ? new Date(item.returnDate).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    })
+                    : "-";
+
+                return `
+                    <tr>
+                        <td class="fw-semibold">${escapeHtml(item.returnNumber || "-")}</td>
+                        <td>${escapeHtml(item.saleNumber || "-")}</td>
+                        <td>${escapeHtml(date)}</td>
+                        <td class="fw-semibold">${formatCurrency(item.refundAmount)}</td>
+                        <td>${escapeHtml(item.processedBy || "-")}</td>
+                        <td>${escapeHtml(item.reason || "No reason recorded")}</td>
+                    </tr>`;
+            }).join("");
+        }
+
+
+        // =========================================================
+        // RENDER RETURNS CHARTS
+        // =========================================================
+
+        function renderReturnsCharts(returns) {
+
+            const barColumn = document.getElementById("barChartColumn");
+            const pieColumn = document.getElementById("pieChartColumn");
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+
+            if (!barColumn || !pieColumn || !barContainer || !pieContainer) return;
+
+            barColumn.className = "col-lg-6";
+            pieColumn.className = "col-lg-6";
+            pieColumn.style.display = "";
+
+            destroyCharts();
+
+            if (!returns || returns.length === 0) {
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-bar-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">No return activity</div>
+                        <small>No completed returns found for the selected period.</small>
+                    </div>`;
+
+                pieContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-graph-up fs-1 mb-2"></i>
+                        <div class="fw-semibold">No refund data</div>
+                        <small>No refund activity found for the selected period.</small>
+                    </div>`;
+                return;
+            }
+
+            barContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Returns Activity</div>
+                    <div class="report-chart-subtitle">Number of completed returns by date</div>
+                </div>
+                <div class="report-chart-canvas">
+                    <canvas id="returnsBarChart"></canvas>
+                </div>`;
+
+            pieContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Refund Trend</div>
+                    <div class="report-chart-subtitle">Refund amount by date</div>
+                </div>
+                <div class="report-chart-canvas">
+                    <canvas id="returnsLineChart"></canvas>
+                </div>`;
+
+            const returnsByDate = {};
+            const refundsByDate = {};
+
+            returns.forEach(item => {
+                if (!item.returnDate) return;
+
+                const date = new Date(item.returnDate);
+                if (isNaN(date)) return;
+
+                const dateKey = date.toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short"
+                });
+
+                returnsByDate[dateKey] = (returnsByDate[dateKey] || 0) + 1;
+                refundsByDate[dateKey] = (refundsByDate[dateKey] || 0) + Number(item.refundAmount || 0);
+            });
+
+            const labels = Object.keys(returnsByDate);
+            const returnCounts = Object.values(returnsByDate);
+            const refundAmounts = labels.map(label => refundsByDate[label] || 0);
+
+            const barCanvas = document.getElementById("returnsBarChart");
+            if (barCanvas && labels.length > 0) {
+                returnsBarChart = new Chart(barCanvas, {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Returns",
+                            data: returnCounts,
+                            backgroundColor: "rgba(220, 53, 69, 0.78)",
+                            hoverBackgroundColor: "rgba(185, 28, 45, 0.92)",
+                            borderWidth: 0,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                            barPercentage: 0.62,
+                            categoryPercentage: 0.72
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 700, easing: "easeOutQuart" },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: "rgba(18, 24, 38, 0.96)",
+                                titleColor: "#ffffff",
+                                bodyColor: "#ffffff",
+                                padding: 13,
+                                cornerRadius: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    label: context => " " + Number(context.raw || 0).toLocaleString("en-IN") + " return(s)"
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { color: "#6c757d", font: { size: 11 } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: "rgba(0, 0, 0, 0.055)", drawTicks: false },
+                                border: { display: false },
+                                ticks: { color: "#6c757d", precision: 0, padding: 8 }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const lineCanvas = document.getElementById("returnsLineChart");
+            if (lineCanvas && labels.length > 0) {
+                returnsLineChart = new Chart(lineCanvas, {
+                    type: "line",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: "Refund Amount",
+                            data: refundAmounts,
+                            borderColor: "#0d6efd",
+                            backgroundColor: "rgba(13, 110, 253, 0.12)",
+                            fill: true,
+                            tension: 0.35,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: "#ffffff",
+                            pointBorderColor: "#0d6efd",
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: { duration: 800, easing: "easeOutQuart" },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                backgroundColor: "rgba(18, 24, 38, 0.96)",
+                                titleColor: "#ffffff",
+                                bodyColor: "#ffffff",
+                                padding: 13,
+                                cornerRadius: 10,
+                                displayColors: false,
+                                callbacks: {
+                                    label: context => " " + formatCurrency(context.raw)
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                border: { display: false },
+                                ticks: { color: "#6c757d", font: { size: 11 } }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: "rgba(0, 0, 0, 0.055)", drawTicks: false },
+                                border: { display: false },
+                                ticks: {
+                                    color: "#6c757d",
+                                    padding: 8,
+                                    callback: value => {
+                                        const amount = Number(value || 0);
+                                        if (amount >= 100000) return "₹" + (amount / 100000).toFixed(1) + "L";
+                                        if (amount >= 1000) return "₹" + (amount / 1000).toFixed(0) + "K";
+                                        return "₹" + amount;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+
+        // =========================================================
+        // RENDER CUSTOMERS TABLE
+        // =========================================================
+
+        function renderCustomersTable(customers) {
+            const tableHead = document.getElementById("reportTableHead");
+            const tableBody = document.getElementById("reportTableBody");
+            if (!tableHead || !tableBody) return;
+
+            if (!customers || customers.length === 0) {
+                tableHead.innerHTML = `<tr><th>No data</th></tr>`;
+                tableBody.innerHTML = `<tr><td class="text-center text-muted py-4">No customer sales found for the selected period.</td></tr>`;
+                return;
+            }
+
+            tableHead.innerHTML = `<tr><th>Customer</th><th>Sales</th><th>Total Spent</th><th>Average Order</th></tr>`;
+            tableBody.innerHTML = customers.map(customer => `
+                <tr>
+                    <td class="fw-semibold">${escapeHtml(customer.customerName || "-")}</td>
+                    <td>${Number(customer.salesCount || 0).toLocaleString("en-IN")}</td>
+                    <td class="fw-semibold">${formatCurrency(customer.totalSpent)}</td>
+                    <td>${formatCurrency(customer.averageOrderValue)}</td>
+                </tr>`).join("");
+        }
+
+
+        // RENDER CUSTOMERS CHARTS
+        // =========================================================
+
+        function renderCustomersCharts(customers) {
+            const barColumn = document.getElementById("barChartColumn");
+            const pieColumn = document.getElementById("pieChartColumn");
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+            if (!barColumn || !pieColumn || !barContainer || !pieContainer) return;
+
+            destroyCharts();
+            barColumn.className = "col-lg-6";
+            pieColumn.className = "col-lg-6";
+            pieColumn.style.display = "";
+
+            if (!customers || customers.length === 0) {
+                barContainer.innerHTML = `<div class="report-empty-state"><i class="bi bi-people fs-1 mb-2"></i><div class="fw-semibold">No customer spending data</div><small>No customer sales found for the selected period.</small></div>`;
+                pieContainer.innerHTML = `<div class="report-empty-state"><i class="bi bi-cart-check fs-1 mb-2"></i><div class="fw-semibold">No purchase data</div><small>No customer purchases found for the selected period.</small></div>`;
+                return;
+            }
+
+            barContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Top Customers by Total Spending</div>
+                    <div class="report-chart-subtitle">Customers with the highest total purchase value</div>
+                </div>
+                <div class="report-chart-canvas"><canvas id="customersSpendingChart"></canvas></div>`;
+
+            pieContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Customers by Number of Purchases</div>
+                    <div class="report-chart-subtitle">Customers with the most purchases</div>
+                </div>
+                <div class="report-chart-canvas"><canvas id="customersPurchasesChart"></canvas></div>`;
+
+            const chartCustomers = customers.slice(0, 10);
+            const labels = chartCustomers.map(c => c.customerName || "Unknown Customer");
+            const spendingValues = chartCustomers.map(c => Number(c.totalSpent || 0));
+            const purchaseValues = chartCustomers.map(c => Number(c.salesCount || 0));
+
+            const spendingCanvas = document.getElementById("customersSpendingChart");
+            if (spendingCanvas) {
+                customersSpendingChart = new Chart(spendingCanvas, {
+                    type: "bar",
+                    data: { labels, datasets: [{ label: "Total Spent", data: spendingValues, backgroundColor: "rgba(13, 110, 253, 0.78)", hoverBackgroundColor: "rgba(8, 66, 152, 0.92)", borderWidth: 0, borderRadius: 8, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.72 }] },
+                    options: {
+                        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+                        animation: { duration: 700, easing: "easeOutQuart" },
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: "rgba(18, 24, 38, 0.96)", titleColor: "#ffffff", bodyColor: "#ffffff", padding: 13, cornerRadius: 10, displayColors: false, callbacks: { label: context => " " + formatCurrency(context.raw) } } },
+                        scales: { x: { beginAtZero: true, grid: { color: "rgba(0, 0, 0, 0.055)", drawTicks: false }, border: { display: false }, ticks: { color: "#6c757d", padding: 8, callback: value => { const amount = Number(value || 0); if (amount >= 100000) return "₹" + (amount / 100000).toFixed(1) + "L"; if (amount >= 1000) return "₹" + (amount / 1000).toFixed(0) + "K"; return "₹" + amount; } } }, y: { grid: { display: false }, border: { display: false }, ticks: { color: "#495057", padding: 8, font: { size: 11, weight: "500" } } } }
+                    }
+                });
+            }
+
+            const purchasesCanvas = document.getElementById("customersPurchasesChart");
+            if (purchasesCanvas) {
+                customersPurchasesChart = new Chart(purchasesCanvas, {
+                    type: "bar",
+                    data: { labels, datasets: [{ label: "Purchases", data: purchaseValues, backgroundColor: "rgba(32, 201, 151, 0.78)", hoverBackgroundColor: "rgba(8, 127, 91, 0.92)", borderWidth: 0, borderRadius: 8, borderSkipped: false, barPercentage: 0.65, categoryPercentage: 0.72 }] },
+                    options: {
+                        indexAxis: "y", responsive: true, maintainAspectRatio: false,
+                        animation: { duration: 700, easing: "easeOutQuart" },
+                        plugins: { legend: { display: false }, tooltip: { backgroundColor: "rgba(18, 24, 38, 0.96)", titleColor: "#ffffff", bodyColor: "#ffffff", padding: 13, cornerRadius: 10, displayColors: false, callbacks: { label: context => " " + Number(context.raw || 0).toLocaleString("en-IN") + " purchase(s)" } } },
+                        scales: { x: { beginAtZero: true, grid: { color: "rgba(0, 0, 0, 0.055)", drawTicks: false }, border: { display: false }, ticks: { color: "#6c757d", padding: 8, precision: 0 } }, y: { grid: { display: false }, border: { display: false }, ticks: { color: "#495057", padding: 8, font: { size: 11, weight: "500" } } } }
+                    }
+                });
+            }
+        }
+
+
+        // RENDER SALES CHARTS
+        // =========================================================
+
+        function renderSalesCharts(sales) {
+
+            const barColumn = document.getElementById("barChartColumn");
+            const pieColumn = document.getElementById("pieChartColumn");
+            if (barColumn) barColumn.className = "col-lg-6";
+            if (pieColumn) {
+                pieColumn.className = "col-lg-6";
+                pieColumn.style.display = "";
+            }
+
+            const barContainer = document.getElementById("barChartContainer");
+            const pieContainer = document.getElementById("pieChartContainer");
+
+            if (!barContainer || !pieContainer) {
+                return;
+            }
+
+            destroyCharts();
+
+            if (!sales || sales.length === 0) {
+
+                barContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-bar-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">No sales data</div>
+                        <small>No sales found for the selected period.</small>
+                    </div>`;
+
+                pieContainer.innerHTML = `
+                    <div class="report-empty-state">
+                        <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                        <div class="fw-semibold">No payment data</div>
+                        <small>No sales found for the selected period.</small>
+                    </div>`;
+
+                return;
+            }
+
+            // ---------------------------------------------------------
+            // Chart containers
+            // ---------------------------------------------------------
+
+            barContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Sales Overview</div>
+                    <div class="report-chart-subtitle">Sales amount by date</div>
+                </div>
+
+                <div class="report-chart-canvas">
+                    <canvas id="salesBarChart"></canvas>
+                </div>`;
+
+            pieContainer.innerHTML = `
+                <div class="report-chart-header">
+                    <div class="report-chart-title">Payment Distribution</div>
+                    <div class="report-chart-subtitle">Sales amount by payment method</div>
+                </div>
+
+                <div class="report-chart-canvas">
+                    <canvas id="salesPieChart"></canvas>
+                </div>`;
+
+
+            // ---------------------------------------------------------
+            // SALES BY DATE
+            // ---------------------------------------------------------
+
+            const salesByDate = {};
+
+            sales.forEach(sale => {
+
+                if (!sale.date) {
+                    return;
+                }
+
+                const date = new Date(sale.date);
+
+                if (isNaN(date)) {
+                    return;
+                }
+
+                const dateKey = date.toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short"
+                });
+
+                if (!salesByDate[dateKey]) {
+                    salesByDate[dateKey] = 0;
+                }
+
+                salesByDate[dateKey] += Number(sale.grandTotal || 0);
+            });
+
+            const barLabels = Object.keys(salesByDate);
+            const barValues = Object.values(salesByDate);
+
+
+            // ---------------------------------------------------------
+            // BAR CHART COLORS
+            // ---------------------------------------------------------
+
+            const barColorPalette = [
+                {
+                    start: "#4f9cff",
+                    middle: "#0d6efd",
+                    end: "#084298",
+                    hoverStart: "#7ab8ff",
+                    hoverMiddle: "#0d6efd",
+                    hoverEnd: "#052c65"
+                },
+                {
+                    start: "#48e0b0",
+                    middle: "#20c997",
+                    end: "#087f5b",
+                    hoverStart: "#78edca",
+                    hoverMiddle: "#20c997",
+                    hoverEnd: "#056047"
+                },
+                {
+                    start: "#ffe083",
+                    middle: "#ffc107",
+                    end: "#b58100",
+                    hoverStart: "#ffeaad",
+                    hoverMiddle: "#ffc107",
+                    hoverEnd: "#8f6900"
+                },
+                {
+                    start: "#a77bff",
+                    middle: "#6f42c1",
+                    end: "#43217a",
+                    hoverStart: "#c5a7ff",
+                    hoverMiddle: "#6f42c1",
+                    hoverEnd: "#351861"
+                },
+                {
+                    start: "#ffae69",
+                    middle: "#fd7e14",
+                    end: "#b84d00",
+                    hoverStart: "#ffc895",
+                    hoverMiddle: "#fd7e14",
+                    hoverEnd: "#963e00"
+                },
+                {
+                    start: "#ff7180",
+                    middle: "#dc3545",
+                    end: "#9b1c29",
+                    hoverStart: "#ff9aa4",
+                    hoverMiddle: "#dc3545",
+                    hoverEnd: "#7f1722"
+                }
+            ];
+
+
+            // ---------------------------------------------------------
+            // BAR CHART
+            // ---------------------------------------------------------
+
+            const barCanvas = document.getElementById("salesBarChart");
+
+            if (barCanvas && barLabels.length > 0) {
+
+                const barContext = barCanvas.getContext("2d");
+
+                const barGradients = barLabels.map((_, index) => {
+
+                    const palette =
+                        barColorPalette[index % barColorPalette.length];
+
+                    const gradient =
+                        barContext.createLinearGradient(0, 0, 0, 330);
+
+                    gradient.addColorStop(0, palette.start);
+                    gradient.addColorStop(0.5, palette.middle);
+                    gradient.addColorStop(1, palette.end);
+
+                    return gradient;
+                });
+
+                const hoverBarGradients = barLabels.map((_, index) => {
+
+                    const palette =
+                        barColorPalette[index % barColorPalette.length];
+
+                    const gradient =
+                        barContext.createLinearGradient(0, 0, 0, 330);
+
+                    gradient.addColorStop(0, palette.hoverStart);
+                    gradient.addColorStop(0.45, palette.hoverMiddle);
+                    gradient.addColorStop(1, palette.hoverEnd);
+
+                    return gradient;
+                });
+
+                salesBarChart = new Chart(barCanvas, {
+                    type: "bar",
+                    data: {
+                        labels: barLabels,
+                        datasets: [{
+                            label: "Sales",
+                            data: barValues,
+                            backgroundColor: barGradients,
+                            hoverBackgroundColor: hoverBarGradients,
+                            borderWidth: 0,
+                            borderRadius: 10,
+                            borderSkipped: false,
+                            barPercentage: 0.62,
+                            categoryPercentage: 0.72,
+                            hoverBorderWidth: 2,
+                            hoverBorderColor: "#ffffff"
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: true,
+                            mode: "nearest"
+                        },
+                        animation: {
+                            duration: 700,
+                            easing: "easeOutQuart"
+                        },
+                        hover: {
+                            mode: "nearest",
+                            intersect: true,
+                            animationDuration: 250
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: "rgba(18, 24, 38, 0.96)",
+                                titleColor: "#ffffff",
+                                bodyColor: "#ffffff",
+                                padding: 13,
+                                cornerRadius: 10,
+                                displayColors: false,
+                                titleFont: {
+                                    size: 12,
+                                    weight: "600"
+                                },
+                                bodyFont: {
+                                    size: 13,
+                                    weight: "500"
+                                },
+                                callbacks: {
+                                    label: function (context) {
+                                        return " ₹" + Number(context.raw || 0).toLocaleString(
+                                            "en-IN",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        );
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                border: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: "#6c757d",
+                                    font: {
+                                        size: 11
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: "rgba(0, 0, 0, 0.055)",
+                                    drawTicks: false
+                                },
+                                border: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: "#6c757d",
+                                    padding: 10,
+                                    font: {
+                                        size: 11
+                                    },
+                                    callback: function (value) {
+                                        if (value >= 100000) {
+                                            return "₹" + (value / 100000).toFixed(1) + "L";
+                                        }
+
+                                        if (value >= 1000) {
+                                            return "₹" + (value / 1000).toFixed(0) + "K";
+                                        }
+
+                                        return "₹" + value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+
+            // ---------------------------------------------------------
+            // PAYMENT METHOD DISTRIBUTION
+            // ---------------------------------------------------------
+
+            const paymentTotals = {};
+
+            sales.forEach(sale => {
+
+                const method = sale.paymentMethod || "Unknown";
+
+                if (!paymentTotals[method]) {
+                    paymentTotals[method] = 0;
+                }
+
+                paymentTotals[method] += Number(sale.grandTotal || 0);
+            });
+
+            const pieLabels = Object.keys(paymentTotals);
+            const pieValues = Object.values(paymentTotals);
+
+            const totalSales = pieValues.reduce(
+                (total, value) => total + Number(value || 0),
+                0
+            );
+
+            const paymentColors = [
+                "#0d6efd",
+                "#20c997",
+                "#ffc107",
+                "#dc3545",
+                "#6f42c1",
+                "#fd7e14"
+            ];
+
+            const paymentHoverColors = [
+                "#4094ff",
+                "#39d8aa",
+                "#ffd34d",
+                "#e4606d",
+                "#8558d4",
+                "#ff9b4a"
+            ];
+
+            const pieCanvas = document.getElementById("salesPieChart");
+
+            if (pieCanvas && pieLabels.length > 0) {
+
+                salesPieChart = new Chart(pieCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: pieLabels,
+                        datasets: [{
+                            data: pieValues,
+                            backgroundColor: pieLabels.map(
+                                (_, index) => paymentColors[index % paymentColors.length]
+                            ),
+                            hoverBackgroundColor: pieLabels.map(
+                                (_, index) => paymentHoverColors[index % paymentHoverColors.length]
+                            ),
+                            borderColor: "#ffffff",
+                            borderWidth: 4,
+                            hoverBorderColor: "#ffffff",
+                            hoverBorderWidth: 5,
+                            hoverOffset: 16
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: "66%",
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 900,
+                            easing: "easeOutQuart"
+                        },
+                        interaction: {
+                            intersect: true,
+                            mode: "nearest"
+                        },
+                        hover: {
+                            mode: "nearest",
+                            intersect: true,
+                            animationDuration: 250
+                        },
+                        plugins: {
+                            legend: {
+                                position: "bottom",
+                                labels: {
+                                    usePointStyle: true,
+                                    pointStyle: "circle",
+                                    padding: 18,
+                                    color: "#495057",
+                                    font: {
+                                        size: 12,
+                                        weight: "500"
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: "rgba(18, 24, 38, 0.96)",
+                                titleColor: "#ffffff",
+                                bodyColor: "#ffffff",
+                                padding: 13,
+                                cornerRadius: 10,
+                                callbacks: {
+                                    label: function (context) {
+
+                                        const value = Number(context.raw || 0);
+                                        const percentage = totalSales > 0
+                                            ? (value / totalSales) * 100
+                                            : 0;
+
+                                        return " ₹" + value.toLocaleString(
+                                            "en-IN",
+                                            {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            }
+                                        ) + "  •  " + percentage.toFixed(1) + "%";
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [{
+                        id: "centerText",
+                        beforeDraw: function (chart) {
+
+                            const ctx = chart.ctx;
+
+                            const centerX =
+                                (chart.chartArea.left + chart.chartArea.right) / 2;
+
+                            const centerY =
+                                (chart.chartArea.top + chart.chartArea.bottom) / 2;
+
+                            ctx.save();
+
+                            ctx.font = "600 19px Arial";
+                            ctx.fillStyle = "#212529";
+                            ctx.textAlign = "center";
+                            ctx.textBaseline = "middle";
+
+                            ctx.fillText(
+                                "₹" + totalSales.toLocaleString(
+                                    "en-IN",
+                                    {
+                                        maximumFractionDigits: 0
+                                    }
+                                ),
+                                centerX,
+                                centerY - 9
+                            );
+
+                            ctx.font = "12px Arial";
+                            ctx.fillStyle = "#6c757d";
+
+                            ctx.fillText(
+                                "Total Sales",
+                                centerX,
+                                centerY + 16
+                            );
+
+                            ctx.restore();
+                        }
+                    }]
+                });
+            }
+        }
+
+
+
+      // =========================================================
+// EXPORT CURRENT REPORT TO EXCEL
+// =========================================================
+
+function exportCurrentReport() {
+
+    const reportType =
+        document.getElementById("reportType")?.value || "Sales";
+
+    const fromDate =
+        document.getElementById("fromDate")?.value || "";
+
+    const toDate =
+        document.getElementById("toDate")?.value || "";
+
+
+    const params = new URLSearchParams();
+
+    params.append("reportType", reportType);
+
+    if (fromDate) {
+        params.append("fromDate", fromDate);
+    }
+
+    if (toDate) {
+        params.append("toDate", toDate);
+    }
+
+
+    window.location.href =
+        `/Reports/ExportExcel?${params.toString()}`;
+
+}
+
+        // =========================================================
+        // CURRENCY FORMATTER
+        // =========================================================
+
+        function formatCurrency(value) {
+
+            return "₹" + Number(value || 0).toLocaleString(
+                "en-IN",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+        }
+        //==========================================================
+        //Renders the income table with the provided data.
+        //==========================================================
+            function renderIncomeTable(income) {
+    const tableHead = document.getElementById("reportTableHead");
+    const tableBody = document.getElementById("reportTableBody");
+
+    tableHead.innerHTML = `
+        <tr>
+            <th>Sale Number</th>
+            <th>Date</th>
+            <th>Subtotal</th>
+            <th>Discount</th>
+            <th>Tax</th>
+            <th>Grand Total</th>
+        </tr>
+    `;
+
+    if (!income || income.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-muted">
+                    No paid sales found for the selected period.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tableBody.innerHTML = income.map(item => `
+        <tr>
+            <td>${escapeHtml(item.saleNumber)}</td>
+            <td>${new Date(item.saleDate).toLocaleString()}</td>
+            <td>${formatCurrency(item.subtotal)}</td>
+            <td>${formatCurrency(item.discount)}</td>
+            <td>${formatCurrency(item.tax)}</td>
+            <td class="fw-bold">${formatCurrency(item.grandTotal)}</td>
+        </tr>
+    `).join("");
+}
+
+        //==========================================================
+        // Renders the income chart with the provided data.
+        //==========================================================    
+function renderIncomeChart(income) {
+
+    const barColumn = document.getElementById("barChartColumn");
+    const pieColumn = document.getElementById("pieChartColumn");
+
+    // Show both chart columns
+    barColumn.classList.remove("d-none");
+    barColumn.className = "col-lg-7";
+
+    pieColumn.classList.remove("d-none");
+    pieColumn.className = "col-lg-5";
+
+
+    // =========================================================
+    // CHART 1: INCOME TREND
+    // =========================================================
+
+    const barContainer = document.getElementById("barChartContainer");
+
+    barContainer.innerHTML = `
+        <div class="card h-100">
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    Income Trend
+                </h5>
+
+                <p class="text-muted mb-3">
+                    Grand total from paid sales by date
+                </p>
+
+                <div style="height: 350px;">
+                    <canvas id="incomeLineChart"></canvas>
+                </div>
+
+            </div>
+        </div>
+    `;
+
+
+    // Group grand total by date
+    const dailyIncome = {};
+
+    income.forEach(item => {
+
+        const date = new Date(item.saleDate)
+            .toISOString()
+            .split("T")[0];
+
+        if (!dailyIncome[date]) {
+            dailyIncome[date] = 0;
+        }
+
+        dailyIncome[date] += Number(item.grandTotal || 0);
+    });
+
+
+    const labels = Object.keys(dailyIncome).sort();
+
+    const incomeValues = labels.map(date => {
+        return dailyIncome[date];
+    });
+
+
+    const lineCtx = document
+        .getElementById("incomeLineChart")
+        .getContext("2d");
+
+
+    incomeLineChart = new Chart(lineCtx, {
+
+        type: "line",
+
+        data: {
+            labels: labels,
+
+            datasets: [{
+                label: "Grand Total",
+
+                data: incomeValues,
+
+                borderWidth: 2,
+
+                tension: 0.3,
+
+                fill: false
+            }]
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+            animation: {
+    duration: 1500,
+    easing: "easeOutQuart"
+},
+
+            plugins: {
+
+                legend: {
+                    display: true
+                },
+
+                tooltip: {
+
+                    callbacks: {
+
+                        label: function (context) {
+
+                            return "₹" +
+                                Number(context.raw || 0)
+                                    .toLocaleString("en-IN", {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                        }
+                    }
+                }
+            },
+
+            scales: {
+
+                y: {
+
+                    beginAtZero: true,
+
+                    ticks: {
+
+                        callback: function (value) {
+
+                            return "₹" +
+                                Number(value)
+                                    .toLocaleString("en-IN");
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+
+    // =========================================================
+    // CHART 2: FINANCIAL COMPONENTS
+    // =========================================================
+
+    const pieContainer = document.getElementById("pieChartContainer");
+
+    pieContainer.innerHTML = `
+        <div class="card h-100">
+            <div class="card-body">
+
+                <h5 class="card-title">
+                    Financial Components
+                </h5>
+
+                <p class="text-muted mb-3">
+                    Subtotal, discount, tax and grand total by date
+                </p>
+
+                <div style="height: 350px;">
+                    <canvas id="incomeBreakdownChart"></canvas>
+                </div>
+
+            </div>
+        </div>
+    `;
+
+
+    // ---------------------------------------------------------
+    // Group financial values by date
+    // ---------------------------------------------------------
+
+    const dailyBreakdown = {};
+
+
+    income.forEach(item => {
+
+        const date = new Date(item.saleDate)
+            .toISOString()
+            .split("T")[0];
+
+
+        if (!dailyBreakdown[date]) {
+
+            dailyBreakdown[date] = {
+                subtotal: 0,
+                discount: 0,
+                tax: 0,
+                grandTotal: 0
+            };
+        }
+
+
+        dailyBreakdown[date].subtotal +=
+            Number(item.subtotal || 0);
+
+
+        dailyBreakdown[date].discount +=
+            Number(item.discount || 0);
+
+
+        dailyBreakdown[date].tax +=
+            Number(item.tax || 0);
+
+
+        dailyBreakdown[date].grandTotal +=
+            Number(item.grandTotal || 0);
+    });
+
+
+    const breakdownLabels =
+        Object.keys(dailyBreakdown).sort();
+
+
+    const subtotalValues = breakdownLabels.map(date =>
+        dailyBreakdown[date].subtotal
+    );
+
+
+    const discountValues = breakdownLabels.map(date =>
+        dailyBreakdown[date].discount
+    );
+
+
+    const taxValues = breakdownLabels.map(date =>
+        dailyBreakdown[date].tax
+    );
+
+
+    const grandTotalValues = breakdownLabels.map(date =>
+        dailyBreakdown[date].grandTotal
+    );
+
+
+    // ---------------------------------------------------------
+    // Create Multi-Line Chart
+    // ---------------------------------------------------------
+
+    const breakdownCtx = document
+        .getElementById("incomeBreakdownChart")
+        .getContext("2d");
+
+
+    incomeBreakdownChart = new Chart(
+        breakdownCtx,
+        {
+
+            type: "line",
+
+            data: {
+
+                labels: breakdownLabels,
+
+                datasets: [
+
+                    {
+                        label: "Subtotal",
+
+                        data: subtotalValues,
+
+                        borderWidth: 2,
+
+                        tension: 0.3,
+
+                        fill: false
+                    },
+
+                    {
+                        label: "Discount",
+
+                        data: discountValues,
+
+                        borderWidth: 2,
+
+                        tension: 0.3,
+
+                        fill: false
+                    },
+
+                    {
+                        label: "Tax",
+
+                        data: taxValues,
+
+                        borderWidth: 2,
+
+                        tension: 0.3,
+
+                        fill: false
+                    },
+
+                    {
+                        label: "Grand Total",
+
+                        data: grandTotalValues,
+
+                        borderWidth: 3,
+
+                        tension: 0.3,
+
+                        fill: false
+                    }
+
+                ]
+            },
+
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+                animation: {
+    duration: 1500,
+    easing: "easeOutQuart"
+},
+
+
+                interaction: {
+
+                    mode: "index",
+
+                    intersect: false
+                },
+
+
+                plugins: {
+
+                    legend: {
+
+                        display: true,
+
+                        position: "bottom"
+                    },
+
+
+                    tooltip: {
+
+                        callbacks: {
+
+                            label: function (context) {
+
+                                return context.dataset.label +
+                                    ": ₹" +
+                                    Number(context.raw || 0)
+                                        .toLocaleString("en-IN", {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2
+                                        });
+                            }
+                        }
+                    }
+                },
+
+
+                scales: {
+
+                    y: {
+
+                        beginAtZero: true,
+
+                        ticks: {
+
+                            callback: function (value) {
+
+                                return "₹" +
+                                    Number(value)
+                                        .toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+}
+
+
+
+
+// =========================================================
+// RENDER INVENTORY TABLE
+// =========================================================
+
+function renderInventoryTable(inventory) {
+
+    const tableHead = document.getElementById("reportTableHead");
+    const tableBody = document.getElementById("reportTableBody");
+
+    if (!tableHead || !tableBody) return;
+
+    if (!inventory || inventory.length === 0) {
+
+        tableHead.innerHTML = `
+            <tr>
+                <th>No data</th>
+            </tr>`;
+
+        tableBody.innerHTML = `
+            <tr>
+                <td class="text-center text-muted py-4">
+                    No active products found in inventory.
+                </td>
+            </tr>`;
+
+        return;
+    }
+
+    tableHead.innerHTML = `
+        <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Current Stock</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+        </tr>`;
+
+    tableBody.innerHTML = inventory.map(product => {
+
+        const status = product.status || "Unknown";
+
+        let statusClass = "bg-secondary";
+
+        if (status === "In Stock") {
+            statusClass = "bg-success";
+        }
+        else if (status === "Low Stock") {
+            statusClass = "bg-warning text-dark";
+        }
+        else if (status === "Out of Stock") {
+            statusClass = "bg-danger";
+        }
+
+        return `
+            <tr>
+                <td class="fw-semibold">
+                    ${escapeHtml(product.productName || "-")}
+                </td>
+
+                <td>
+                    ${escapeHtml(product.sku || "-")}
+                </td>
+
+                <td>
+                    ${Number(product.currentStock || 0).toLocaleString("en-IN")}
+                </td>
+
+                <td>
+                    ${Number(product.reorderLevel || 0).toLocaleString("en-IN")}
+                </td>
+
+                <td>
+                    <span class="badge ${statusClass}">
+                        ${escapeHtml(status)}
+                    </span>
+                </td>
+            </tr>`;
+    }).join("");
+}
+
+// =========================================================
+// RENDER INVENTORY CHARTS
+// =========================================================
+
+function renderInventoryCharts(inventory) {
+
+    const barColumn = document.getElementById("barChartColumn");
+    const pieColumn = document.getElementById("pieChartColumn");
+    const barContainer = document.getElementById("barChartContainer");
+    const pieContainer = document.getElementById("pieChartContainer");
+
+    if (!barColumn || !pieColumn || !barContainer || !pieContainer) {
+        return;
+    }
+
+    destroyCharts();
+
+    barColumn.className = "col-lg-7";
+    pieColumn.className = "col-lg-5";
+    pieColumn.style.display = "";
+
+    if (!inventory || inventory.length === 0) {
+
+        barContainer.innerHTML = `
+            <div class="report-empty-state">
+                <i class="bi bi-box-seam fs-1 mb-2"></i>
+                <div class="fw-semibold">No inventory data</div>
+                <small>No active products found.</small>
+            </div>`;
+
+        pieContainer.innerHTML = `
+            <div class="report-empty-state">
+                <i class="bi bi-pie-chart fs-1 mb-2"></i>
+                <div class="fw-semibold">No inventory status</div>
+                <small>No active products found.</small>
+            </div>`;
+
+        return;
+    }
+
+    // =========================================================
+    // CHART CONTAINERS
+    // =========================================================
+
+    barContainer.innerHTML = `
+        <div class="report-chart-header">
+            <div class="report-chart-title">
+                Current Stock by Product
+            </div>
+
+            <div class="report-chart-subtitle">
+                Current available units
+            </div>
+        </div>
+
+        <div class="report-chart-canvas">
+            <canvas id="inventoryStockChart"></canvas>
+        </div>`;
+
+    pieContainer.innerHTML = `
+        <div class="report-chart-header">
+            <div class="report-chart-title">
+                Inventory Status
+            </div>
+
+            <div class="report-chart-subtitle">
+                Products by stock condition
+            </div>
+        </div>
+
+        <div class="report-chart-canvas">
+            <canvas id="inventoryStatusChart"></canvas>
+        </div>`;
+
+
+    // =========================================================
+    // CHART 1: CURRENT STOCK BY PRODUCT
+    // =========================================================
+
+    const chartProducts = inventory.slice(0, 10);
+
+    const stockLabels = chartProducts.map(
+        product => product.productName || "Unknown Product"
+    );
+
+    const stockValues = chartProducts.map(
+        product => Number(product.currentStock || 0)
+    );
+
+    const stockCanvas = document.getElementById("inventoryStockChart");
+
+    if (stockCanvas) {
+
+        inventoryStockChart = new Chart(stockCanvas, {
+
+            type: "bar",
+
+            data: {
+                labels: stockLabels,
+
+                datasets: [{
+                    label: "Current Stock",
+                    data: stockValues,
+
+                    backgroundColor: "rgba(13, 110, 253, 0.78)",
+                    hoverBackgroundColor: "rgba(8, 66, 152, 0.92)",
+
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    borderSkipped: false,
+
+                    barPercentage: 0.65,
+                    categoryPercentage: 0.72
+                }]
+            },
+
+            options: {
+
+                indexAxis: "y",
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 2000,
+                    easing: "easeOutQuart"
+                },
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    },
+
+                    tooltip: {
+
+                        backgroundColor: "rgba(18, 24, 38, 0.96)",
+
+                        titleColor: "#ffffff",
+                        bodyColor: "#ffffff",
+
+                        padding: 13,
+
+                        cornerRadius: 10,
+
+                        displayColors: false,
+
+                        callbacks: {
+
+                            label: function (context) {
+
+                                return " " +
+                                    Number(context.raw || 0)
+                                        .toLocaleString("en-IN") +
+                                    " unit(s)";
+                            }
+                        }
+                    }
+                },
+
+                scales: {
+
+                    x: {
+
+                        beginAtZero: true,
+
+                        grid: {
+                            color: "rgba(0, 0, 0, 0.055)",
+                            drawTicks: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: "#6c757d",
+                            padding: 8,
+                            precision: 0
+                        }
+                    },
+
+                    y: {
+
+                        grid: {
+                            display: false
+                        },
+
+                        border: {
+                            display: false
+                        },
+
+                        ticks: {
+                            color: "#495057",
+                            padding: 8,
+
+                            font: {
+                                size: 11,
+                                weight: "500"
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
+    // =========================================================
+    // CHART 2: INVENTORY STATUS DISTRIBUTION
+    // =========================================================
+
+    const statusTotals = {
+        "In Stock": 0,
+        "Low Stock": 0,
+        "Out of Stock": 0
+    };
+
+    inventory.forEach(product => {
+
+        const status = product.status || "Out of Stock";
+
+        if (statusTotals.hasOwnProperty(status)) {
+            statusTotals[status]++;
+        }
+    });
+
+    const statusLabels = Object.keys(statusTotals);
+
+    const statusValues = Object.values(statusTotals);
+
+    const totalProducts = statusValues.reduce(
+        (total, value) => total + value,
+        0
+    );
+
+    const statusColors = [
+        "#198754",
+        "#ffc107",
+        "#dc3545"
+    ];
+
+    const statusHoverColors = [
+        "#157347",
+        "#ffca2c",
+        "#bb2d3b"
+    ];
+
+    const statusCanvas =
+        document.getElementById("inventoryStatusChart");
+
+    if (statusCanvas) {
+
+        inventoryStatusChart = new Chart(statusCanvas, {
+
+            type: "doughnut",
+
+            data: {
+
+                labels: statusLabels,
+
+                datasets: [{
+
+                    data: statusValues,
+
+                    backgroundColor: statusColors,
+
+                    hoverBackgroundColor: statusHoverColors,
+
+                    borderColor: "#ffffff",
+
+                    borderWidth: 4,
+
+                    hoverBorderColor: "#ffffff",
+
+                    hoverBorderWidth: 5,
+
+                    hoverOffset: 12
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                maintainAspectRatio: false,
+
+                cutout: "66%",
+
+                animation: {
+
+                    animateRotate: true,
+
+                    animateScale: true,
+
+                    duration: 2000,
+
+                    easing: "easeOutQuart"
+                },
+
+                plugins: {
+
+                    legend: {
+
+                        position: "bottom",
+
+                        labels: {
+
+                            usePointStyle: true,
+
+                            pointStyle: "circle",
+
+                            padding: 18,
+
+                            color: "#495057",
+
+                            font: {
+                                size: 12,
+                                weight: "500"
+                            }
+                        }
+                    },
+
+                    tooltip: {
+
+                        backgroundColor: "rgba(18, 24, 38, 0.96)",
+
+                        titleColor: "#ffffff",
+
+                        bodyColor: "#ffffff",
+
+                        padding: 13,
+
+                        cornerRadius: 10,
+
+                        callbacks: {
+
+                            label: function (context) {
+
+                                const value =
+                                    Number(context.raw || 0);
+
+                                const percentage =
+                                    totalProducts > 0
+                                        ? (value / totalProducts) * 100
+                                        : 0;
+
+                                return " " +
+                                    value +
+                                    " product(s) • " +
+                                    percentage.toFixed(1) +
+                                    "%";
+                            }
+                        }
+                    }
+                }
+            },
+
+            plugins: [{
+
+                id: "inventoryCenterText",
+
+                beforeDraw: function (chart) {
+
+                    const ctx = chart.ctx;
+
+                    const centerX =
+                        (chart.chartArea.left +
+                         chart.chartArea.right) / 2;
+
+                    const centerY =
+                        (chart.chartArea.top +
+                         chart.chartArea.bottom) / 2;
+
+                    ctx.save();
+
+                    ctx.font = "600 19px Arial";
+
+                    ctx.fillStyle = "#212529";
+
+                    ctx.textAlign = "center";
+
+                    ctx.textBaseline = "middle";
+
+                    ctx.fillText(
+                        totalProducts.toLocaleString("en-IN"),
+                        centerX,
+                        centerY - 9
+                    );
+
+                    ctx.font = "12px Arial";
+
+                    ctx.fillStyle = "#6c757d";
+
+                    ctx.fillText(
+                        "Products",
+                        centerX,
+                        centerY + 16
+                    );
+
+                    ctx.restore();
+                }
+            }]
+        });
+    }
+}
+
+        // =========================================================
+        // HTML ESCAPE HELPER
+        // Prevents report data from being inserted as raw HTML.
+        // =========================================================
+
+        function escapeHtml(value) {
+
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

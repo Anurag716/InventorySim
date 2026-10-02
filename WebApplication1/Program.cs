@@ -3,9 +3,12 @@ using Inventory.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
+using OfficeOpenXml;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+ExcelPackage.License.SetNonCommercialPersonal("Anurag");
 
 QuestPDF.Settings.License = LicenseType.Community;
 

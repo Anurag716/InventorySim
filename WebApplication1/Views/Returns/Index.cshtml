@@ -1,0 +1,726 @@
+﻿@model IEnumerable<Inventory.Models.Return>
+
+@{
+    ViewData["Title"] = "Returns";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold mb-1">
+            Returns
+        </h2>
+
+        <p class="text-muted mb-0">
+            View processed product returns and cash refunds.
+        </p>
+    </div>
+
+    <div class="d-flex gap-2">
+
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-controller="Returns"
+               asp-action="ExportCsv"
+               class="btn btn-success">
+
+                <i class="bi bi-file-earmark-spreadsheet me-2"></i>
+                Export CSV
+
+            </a>
+        }
+
+        <a asp-controller="Sales"
+           asp-action="Index"
+           class="btn btn-primary">
+
+            <i class="bi bi-arrow-left me-2"></i>
+            Back to Sales
+
+        </a>
+
+    </div>
+
+</div>
+
+    
+    <div class="card shadow-sm border-0 mb-3">
+
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-5">
+
+                <label class="form-label">
+                    Search
+                </label>
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        <i class="bi bi-search"></i>
+                    </span>
+
+                    <input type="text"
+                           id="returnSearch"
+                           class="form-control"
+                           placeholder="Return number, sale number or customer..." />
+
+                </div>
+
+            </div>
+
+            
+
+            <div class="col-md-2">
+
+                <label class="form-label">
+                    From Date
+                </label>
+
+                <input type="date"
+                       id="returnFromDate"
+                       class="form-control" />
+
+            </div>
+
+            <div class="col-md-2">
+
+                <label class="form-label">
+                    To Date
+                </label>
+
+                <input type="date"
+                       id="returnToDate"
+                       class="form-control" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+    <div class="card shadow-sm border-0">
+
+        <div class="card-body">
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+
+                    <i class="bi bi-arrow-counterclockwise display-4 text-muted"></i>
+
+                    <h5 class="mt-3">
+                        No returns found
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Processed returns will appear here.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table table-hover align-middle mb-0">
+
+                        <thead class="table-light">
+
+                            <tr>
+                                <th>Return Number</th>
+                                <th>Sale Number</th>
+                                <th>Customer</th>
+                                <th>Return Date</th>
+                                <th>Refund Amount</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            @foreach (var item in Model)
+                            {
+                                <tr class="return-row"
+        data-return-number="@item.ReturnNumber"
+        data-sale-number="@item.Sale?.SaleNumber"
+        data-customer="@item.Sale?.Customer?.Name"
+        data-status="@item.Status"
+        data-date="@item.ReturnDate.ToString("yyyy-MM-dd")">
+
+                                    <td class="fw-semibold">
+                                        @item.ReturnNumber
+                                    </td>
+
+                                    <td>
+                                        @item.Sale?.SaleNumber
+                                    </td>
+
+                                    <td>
+                                        @(item.Sale?.Customer?.Name ?? "Walk-in Customer")
+                                    </td>
+
+                                    <td>
+                                        @item.ReturnDate.ToString("dd MMM yyyy, hh:mm tt")
+                                    </td>
+
+                                    <td class="fw-semibold text-success">
+                                        ₹@item.RefundAmount.ToString("N2")
+                                    </td>
+
+                                    <td>
+                                        @if (item.Status == "Completed")
+                                        {
+                                            <span class="badge bg-success">
+                                                Completed
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @item.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-primary"
+                                                onclick="viewReturnDetails(@item.ReturnId)">
+
+                                            <i class="bi bi-eye me-1"></i>
+                                            Details
+
+                                        </button>
+
+                                   </td>
+
+                                </tr>
+                            }
+                            <tr id="noReturnResults"
+    class="d-none">
+
+    <td colspan="7"
+        class="text-center text-muted py-4">
+
+        No returns match your search or filters.
+
+    </td>
+
+</tr>
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+<div class="modal fade"
+     id="returnDetailsModal"
+     tabindex="-1"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+                    Return Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="returnDetailsLoading"
+                     class="text-center py-4">
+
+                    <div class="spinner-border text-primary"
+                         role="status">
+                    </div>
+
+                    <div class="mt-2 text-muted">
+                        Loading return details...
+                    </div>
+
+                </div>
+
+                <div id="returnDetailsContent"
+                     class="d-none">
+
+                    <div class="row g-3 mb-4">
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Return Number
+                            </div>
+
+                            <div id="detailReturnNumber"
+                                 class="fw-semibold">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Sale Number
+                            </div>
+
+                            <div id="detailSaleNumber"
+                                 class="fw-semibold">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Customer
+                            </div>
+
+                            <div id="detailCustomer">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Return Date
+                            </div>
+
+                            <div id="detailReturnDate">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Processed By
+                            </div>
+
+                            <div id="detailProcessedBy">
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="text-muted small">
+                                Status
+                            </div>
+
+                            <div id="detailStatus">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <h6 class="fw-bold mb-3">
+                        Returned Products
+                    </h6>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-sm align-middle">
+
+                            <thead class="table-light">
+
+                                <tr>
+                                    <th>Product</th>
+                                    <th>SKU</th>
+                                    <th>Quantity</th>
+                                    <th class="text-end">
+                                        Refund
+                                    </th>
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="returnItemsBody">
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                    <div class="border-top pt-3 mt-3">
+
+                        <div class="d-flex justify-content-between">
+
+                            <span class="fw-semibold">
+                                Total Cash Refund
+                            </span>
+
+                            <span id="detailRefundAmount"
+                                  class="fw-bold text-success fs-5">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div id="detailReasonContainer"
+                         class="mt-3 d-none">
+
+                        <div class="text-muted small">
+                            Reason
+                        </div>
+
+                        <div id="detailReason">
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div id="returnDetailsError"
+                     class="alert alert-danger d-none">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+<script>
+
+    async function viewReturnDetails(returnId) {
+
+    const modalElement =
+        document.getElementById("returnDetailsModal");
+
+    const modal =
+        new bootstrap.Modal(modalElement);
+
+    const loading =
+        document.getElementById("returnDetailsLoading");
+
+    const content =
+        document.getElementById("returnDetailsContent");
+
+    const error =
+        document.getElementById("returnDetailsError");
+
+    loading.classList.remove("d-none");
+    content.classList.add("d-none");
+    error.classList.add("d-none");
+
+    modal.show();
+
+    try {
+
+        const response = await fetch(
+            `/Returns/GetReturnDetails?id=${returnId}`,
+            {
+                method: "GET",
+                headers: {
+                    "Accept": "application/json"
+                }
+            }
+        );
+
+        const responseText = await response.text();
+
+        console.log("Return details response:", response.status);
+        console.log("Return details body:", responseText);
+
+        let result;
+
+        try {
+            result = JSON.parse(responseText);
+        }
+        catch {
+            throw new Error(
+                "The server returned an invalid response."
+            );
+        }
+
+        if (!response.ok) {
+
+            throw new Error(
+                result.message ||
+                `Request failed with status ${response.status}.`
+            );
+        }
+
+        if (!result.success) {
+
+            throw new Error(
+                result.message ||
+                "Unable to load return details."
+            );
+        }
+
+        document.getElementById("detailReturnNumber")
+            .textContent =
+            result.returnNumber || "-";
+
+        document.getElementById("detailSaleNumber")
+            .textContent =
+            result.saleNumber || "-";
+
+        document.getElementById("detailCustomer")
+            .textContent =
+            result.customerName || "Walk-in Customer";
+
+        document.getElementById("detailReturnDate")
+            .textContent =
+            formatReturnDate(result.returnDate);
+
+        document.getElementById("detailProcessedBy")
+            .textContent =
+            result.processedBy || "-";
+
+        document.getElementById("detailStatus")
+            .innerHTML =
+            `<span class="badge bg-success">
+                ${result.status || "-"}
+             </span>`;
+
+        document.getElementById("detailRefundAmount")
+            .textContent =
+            "₹" + formatMoney(result.refundAmount || 0);
+
+        const itemsBody =
+            document.getElementById("returnItemsBody");
+
+        itemsBody.innerHTML = "";
+
+        if (result.items && result.items.length > 0) {
+
+            result.items.forEach(function (item) {
+
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${item.productName || "-"}</td>
+                    <td>${item.sku || "-"}</td>
+                    <td>${item.quantity || 0}</td>
+                    <td class="text-end">
+                        ₹${formatMoney(item.refundAmount || 0)}
+                    </td>
+                `;
+
+                itemsBody.appendChild(row);
+
+            });
+
+        }
+        else {
+
+            itemsBody.innerHTML = `
+                <tr>
+                    <td colspan="4"
+                        class="text-center text-muted">
+                        No return items found.
+                    </td>
+                </tr>
+            `;
+
+        }
+
+        const reasonContainer =
+            document.getElementById(
+                "detailReasonContainer"
+            );
+
+        document.getElementById("detailReason")
+            .textContent =
+            result.reason || "No reason recorded.";
+
+        reasonContainer.classList.remove("d-none");
+
+        loading.classList.add("d-none");
+        content.classList.remove("d-none");
+
+    }
+    catch (err) {
+
+        console.error(
+            "Return details error:",
+            err
+        );
+
+        loading.classList.add("d-none");
+
+        error.textContent =
+            err.message ||
+            "Unable to load return details.";
+
+        error.classList.remove("d-none");
+    }
+}
+
+    function formatMoney(value) {
+
+        return Number(value).toLocaleString(
+            "en-IN",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        );
+    }
+
+
+    function formatReturnDate(value) {
+
+        const date = new Date(value);
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+    }
+
+</script>
+<script>
+
+    const returnSearch =
+        document.getElementById("returnSearch");
+
+    const returnStatusFilter =
+        document.getElementById("returnStatusFilter");
+
+    const returnFromDate =
+        document.getElementById("returnFromDate");
+
+    const returnToDate =
+        document.getElementById("returnToDate");
+
+    const returnRows =
+        document.querySelectorAll(".return-row");
+
+    const noReturnResults =
+        document.getElementById("noReturnResults");
+
+
+    function filterReturns() {
+
+        const search =
+            returnSearch.value
+                .trim()
+                .toLowerCase();
+
+        const status =
+            returnStatusFilter.value;
+
+        const fromDate =
+            returnFromDate.value;
+
+        const toDate =
+            returnToDate.value;
+
+        let visibleCount = 0;
+
+
+        returnRows.forEach(function (row) {
+
+            const returnNumber =
+                row.dataset.returnNumber
+                    .toLowerCase();
+
+            const saleNumber =
+                (row.dataset.saleNumber || "")
+                    .toLowerCase();
+
+            const customer =
+                (row.dataset.customer || "")
+                    .toLowerCase();
+
+            const rowStatus =
+                row.dataset.status;
+
+            const rowDate =
+                row.dataset.date;
+
+
+            const matchesSearch =
+                !search ||
+                returnNumber.includes(search) ||
+                saleNumber.includes(search) ||
+                customer.includes(search);
+
+
+            const matchesStatus =
+                !status ||
+                rowStatus === status;
+
+
+            const matchesFromDate =
+                !fromDate ||
+                rowDate >= fromDate;
+
+
+            const matchesToDate =
+                !toDate ||
+                rowDate <= toDate;
+
+
+            const visible =
+                matchesSearch &&
+                matchesStatus &&
+                matchesFromDate &&
+                matchesToDate;
+
+
+            row.classList.toggle(
+                "d-none",
+                !visible
+            );
+
+
+            if (visible) {
+                visibleCount++;
+            }
+
+        });
+
+
+        noReturnResults.classList.toggle(
+            "d-none",
+            visibleCount !== 0
+        );
+    }
+
+
+    returnSearch.addEventListener(
+        "input",
+        filterReturns
+    );
+
+    returnStatusFilter.addEventListener(
+        "change",
+        filterReturns
+    );
+
+    returnFromDate.addEventListener(
+        "change",
+        filterReturns
+    );
+
+    returnToDate.addEventListener(
+        "change",
+        filterReturns
+    );
+
+</script>
