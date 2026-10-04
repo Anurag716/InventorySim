@@ -1,5 +1,4 @@
-﻿```cshtml
-@model Inventory.ViewModels.PurchaseEditViewModel
+﻿@model Inventory.ViewModels.PurchaseEditViewModel
 @using System.Text.Json
 
 @{
@@ -13,302 +12,353 @@
     });
 }
 
-<div class="container mt-4">
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+<div class="container-fluid mt-4">
 
-        <h2>Edit Purchase</h2>
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-content-between align-items-center">
+
+        <div>
+            <h2>Edit Purchase</h2>
+            <p>
+                Update supplier purchase details and modify the products received.
+            </p>
+        </div>
 
         <a asp-action="Index"
-           class="btn btn-secondary">
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>
             Back to Purchases
         </a>
 
     </div>
 
-    <div class="card">
 
-        <div class="card-body">
+    <!-- Purchase Form -->
+    <div class="row justify-content-center">
 
-            <form asp-action="Edit"
-                  method="post">
+        <div class="col-12 col-xl-10">
 
-                @Html.AntiForgeryToken()
+            <div class="inventra-form-section">
 
-                <input type="hidden"
-                       asp-for="PurchaseId" />
+                <!-- Section Header -->
+                <div class="inventra-form-section-header">
 
-                <input type="hidden"
-                       asp-for="PurchaseNumber" />
-
-                <!-- Validation Summary -->
-
-                <div asp-validation-summary="ModelOnly"
-                     class="text-danger mb-3">
-                </div>
-
-                <!-- Custom JavaScript Message -->
-
-                <div id="itemErrorMessage"
-                     class="alert alert-warning alert-dismissible fade show d-none"
-                     role="alert">
-
-                    <strong>Cannot remove product.</strong>
-                    A purchase must contain at least one product.
-
-                    <button type="button"
-                            class="btn-close"
-                            data-bs-dismiss="alert"
-                            aria-label="Close">
-                    </button>
-
-                </div>
-
-                <!-- Purchase Information -->
-
-                <div class="row mb-4">
-
-                    <div class="col-md-6">
-
-                        <label class="form-label">
-                            Purchase Number
-                        </label>
-
-                        <input type="text"
-                               class="form-control"
-                               value="@Model.PurchaseNumber"
-                               readonly />
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label asp-for="SupplierId"
-                               class="form-label">
-                            Supplier
-                        </label>
-
-                        <select asp-for="SupplierId"
-                                asp-items="Model.Suppliers"
-                                class="form-select">
-
-                            <option value="">
-                                -- Select Supplier --
-                            </option>
-
-                        </select>
-
-                        <span asp-validation-for="SupplierId"
-                              class="text-danger">
-                        </span>
-
+                    <div>
+                        <h5 class="mb-1">Purchase Information</h5>
+                        <p class="text-muted mb-0">
+                            Update the supplier, purchase date, and purchased products.
+                        </p>
                     </div>
 
                 </div>
 
-                <div class="row mb-4">
 
-                    <div class="col-md-6">
+                <!-- Section Body -->
+                <div class="inventra-form-section-body">
 
-                        <label asp-for="PurchaseDate"
-                               class="form-label">
-                            Purchase Date
-                        </label>
+                    <form asp-action="Edit"
+                          method="post"
+                          id="purchaseForm">
 
-                        <input asp-for="PurchaseDate"
-                               class="form-control" />
+                        @Html.AntiForgeryToken()
 
-                        <span asp-validation-for="PurchaseDate"
-                              class="text-danger">
-                        </span>
+                        <input type="hidden"
+                               asp-for="PurchaseId" />
 
-                    </div>
+                        <input type="hidden"
+                               asp-for="PurchaseNumber" />
 
-                </div>
 
-                <!-- Products -->
+                        <!-- Validation -->
+                        <div asp-validation-summary="ModelOnly"
+                             class="alert alert-danger">
+                        </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-3">
 
-                    <h5>
-                        Purchased Products
-                    </h5>
+                        <!-- JavaScript Warning -->
+                        <div id="itemErrorMessage"
+                             class="alert alert-warning alert-dismissible fade show d-none"
+                             role="alert">
 
-                    <button type="button"
-                            id="addItemButton"
-                            class="btn btn-primary btn-sm">
+                            <strong>Cannot remove product.</strong>
+                            A purchase must contain at least one product.
 
-                        Add Product
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert"
+                                    aria-label="Close">
+                            </button>
 
-                    </button>
+                        </div>
 
-                </div>
 
-                <div id="itemsContainer">
+                        <!-- Purchase Details -->
+                        <div class="row g-3 mb-4">
 
-                    @for (int i = 0; i < Model.Items.Count; i++)
-                    {
-                        <div class="purchase-item border rounded p-3 mb-3">
+                            <div class="col-md-6">
 
-                            <div class="row align-items-end">
+                                <label class="form-label">
+                                    Purchase Number
+                                </label>
 
-                                <input type="hidden"
-                                       name="Items[@i].PurchaseItemId"
-                                       value="@Model.Items[i].PurchaseItemId" />
-
-                                <div class="col-md-4">
-
-                                    <label class="form-label">
-                                        Product
-                                    </label>
-
-                                    <select name="Items[@i].ProductId"
-                                            class="form-select product-select">
-
-                                        <option value="">
-                                            -- Select Product --
-                                        </option>
-
-                                        @foreach (var product in Model.Products)
-                                        {
-                                            if (product.ProductId == Model.Items[i].ProductId)
-                                            {
-                                                <option value="@product.ProductId"
-                                                        data-purchase-price="@product.PurchasePrice"
-                                                        selected>
-
-                                                    @product.ProductName
-                                                    (@product.Sku)
-
-                                                </option>
-                                            }
-                                            else
-                                            {
-                                                <option value="@product.ProductId"
-                                                        data-purchase-price="@product.PurchasePrice">
-
-                                                    @product.ProductName
-                                                    (@product.Sku)
-
-                                                </option>
-                                            }
-                                        }
-
-                                    </select>
-
-                                </div>
-
-                                <div class="col-md-2">
-
-                                    <label class="form-label">
-                                        Quantity
-                                    </label>
-
-                                    <input type="number"
-                                           name="Items[@i].Quantity"
-                                           class="form-control quantity-input"
-                                           min="1"
-                                           value="@Model.Items[i].Quantity" />
-
-                                </div>
-
-                                <div class="col-md-3">
-
-                                    <label class="form-label">
-                                        Unit Price
-                                    </label>
-
-                                    <input type="number"
-                                           name="Items[@i].UnitPrice"
-                                           class="form-control price-input"
-                                           min="0.01"
-                                           step="0.01"
-                                           value="@Model.Items[i].UnitPrice.ToString("0.00")" />
-
-                                </div>
-
-                                <div class="col-md-2">
-
-                                    <label class="form-label">
-                                        Subtotal
-                                    </label>
-
-                                    <input type="text"
-                                           class="form-control subtotal-input"
-                                           value="@((Model.Items[i].Quantity * Model.Items[i].UnitPrice).ToString("0.00"))"
-                                           readonly />
-
-                                </div>
-
-                                <div class="col-md-1">
-
-                                    <button type="button"
-                                            class="btn btn-danger btn-sm remove-item">
-
-                                        Remove
-
-                                    </button>
-
-                                </div>
+                                <input type="text"
+                                       class="form-control"
+                                       value="@Model.PurchaseNumber"
+                                       readonly />
 
                             </div>
 
-                        </div>
-                    }
 
-                </div>
+                            <div class="col-md-6">
 
-                <!-- Total -->
+                                <label asp-for="SupplierId"
+                                       class="form-label">
+                                    Supplier
+                                </label>
 
-                <div class="row justify-content-end mt-4">
+                                <select asp-for="SupplierId"
+                                        asp-items="Model.Suppliers"
+                                        class="form-select">
 
-                    <div class="col-md-4">
+                                    <option value="">
+                                        -- Select Supplier --
+                                    </option>
 
-                        <div class="card bg-light">
+                                </select>
 
-                            <div class="card-body">
+                                <span asp-validation-for="SupplierId"
+                                      class="text-danger">
+                                </span>
 
-                                <div class="d-flex justify-content-between">
+                            </div>
 
-                                    <strong>
-                                        Total Amount
-                                    </strong>
 
-                                    <strong id="totalAmount">
-                                        ₹0.00
-                                    </strong>
+                            <div class="col-md-6">
 
-                                </div>
+                                <label asp-for="PurchaseDate"
+                                       class="form-label">
+                                    Purchase Date
+                                </label>
+
+                                <input asp-for="PurchaseDate"
+                                       class="form-control" />
+
+                                <span asp-validation-for="PurchaseDate"
+                                      class="text-danger">
+                                </span>
 
                             </div>
 
                         </div>
 
-                    </div>
+
+                        <hr class="my-4" />
+
+
+                        <!-- Purchased Products Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+
+                            <div>
+                                <h5 class="mb-1">
+                                    Purchased Products
+                                </h5>
+
+                                <p class="text-muted mb-0 small">
+                                    Modify quantities, prices, or add additional products.
+                                </p>
+                            </div>
+
+                            <button type="button"
+                                    id="addItemButton"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-plus-lg me-1"></i>
+                                Add Product
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- Product Rows -->
+                        <div id="itemsContainer">
+
+                            @for (int i = 0; i < Model.Items.Count; i++)
+                            {
+                                <div class="purchase-item inventra-purchase-item">
+
+                                    <div class="row g-3 align-items-end">
+
+                                        <input type="hidden"
+                                               name="Items[@i].PurchaseItemId"
+                                               value="@Model.Items[i].PurchaseItemId" />
+
+
+                                        <!-- Product -->
+                                        <div class="col-md-4">
+
+                                            <label class="form-label">
+                                                Product
+                                            </label>
+
+                                            <select name="Items[@i].ProductId"
+                                                    class="form-select product-select">
+
+                                                <option value="">
+                                                    -- Select Product --
+                                                </option>
+
+                                                @foreach (var product in Model.Products)
+                                                {
+                                                    if (product.ProductId == Model.Items[i].ProductId)
+                                                    {
+                                                        <option value="@product.ProductId"
+                                                                data-purchase-price="@product.PurchasePrice"
+                                                                selected>
+
+                                                            @product.ProductName
+                                                            (@product.Sku)
+
+                                                        </option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@product.ProductId"
+                                                                data-purchase-price="@product.PurchasePrice">
+
+                                                            @product.ProductName
+                                                            (@product.Sku)
+
+                                                        </option>
+                                                    }
+                                                }
+
+                                            </select>
+
+                                        </div>
+
+
+                                        <!-- Quantity -->
+                                        <div class="col-md-2">
+
+                                            <label class="form-label">
+                                                Quantity
+                                            </label>
+
+                                            <input type="number"
+                                                   name="Items[@i].Quantity"
+                                                   class="form-control quantity-input"
+                                                   min="1"
+                                                   value="@Model.Items[i].Quantity" />
+
+                                        </div>
+
+
+                                        <!-- Unit Price -->
+                                        <div class="col-md-3">
+
+                                            <label class="form-label">
+                                                Unit Price
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <span class="input-group-text">
+                                                    ₹
+                                                </span>
+
+                                                <input type="number"
+                                                       name="Items[@i].UnitPrice"
+                                                       class="form-control price-input"
+                                                       min="0.01"
+                                                       step="0.01"
+                                                       value="@Model.Items[i].UnitPrice.ToString("0.00")" />
+
+                                            </div>
+
+                                        </div>
+
+
+                                        <!-- Subtotal -->
+                                        <div class="col-md-2">
+
+                                            <label class="form-label">
+                                                Subtotal
+                                            </label>
+
+                                            <input type="text"
+                                                   class="form-control subtotal-input"
+                                                   value="@((Model.Items[i].Quantity * Model.Items[i].UnitPrice).ToString("0.00"))"
+                                                   readonly />
+
+                                        </div>
+
+
+                                        <!-- Remove -->
+                                        <div class="col-md-1">
+
+                                            <button type="button"
+                                                    class="btn btn-outline-danger remove-item w-100"
+                                                    title="Remove product">
+
+                                                <i class="bi bi-trash"></i>
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        </div>
+
+
+                        <!-- Total -->
+                        <div class="purchase-total">
+
+                            <div>
+                                <span class="text-muted">
+                                    Total Purchase Amount
+                                </span>
+                            </div>
+
+                            <div class="purchase-total-amount"
+                                 id="totalAmount">
+                                ₹0.00
+                            </div>
+
+                        </div>
+
+
+                        <!-- Actions -->
+                        <div class="inventra-form-actions">
+
+                            <a asp-action="Index"
+                               class="btn btn-outline-secondary">
+
+                                <i class="bi bi-x-lg me-1"></i>
+                                Cancel
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="bi bi-check-lg me-1"></i>
+                                Save Changes
+
+                            </button>
+
+                        </div>
+
+                    </form>
 
                 </div>
 
-                <!-- Buttons -->
-
-                <div class="mt-4">
-
-                    <button type="submit"
-                            class="btn btn-success">
-
-                        Save Changes
-
-                    </button>
-
-                    <a asp-action="Index"
-                       class="btn btn-secondary ms-2">
-
-                        Cancel
-
-                    </a>
-
-                </div>
-
-            </form>
+            </div>
 
         </div>
 
@@ -463,8 +513,8 @@
                 const row =
                     document.createElement("div");
 
-                row.className =
-                    "purchase-item border rounded p-3 mb-3";
+               row.className =
+    "purchase-item inventra-purchase-item";
 
 
                 row.innerHTML = `
@@ -534,12 +584,13 @@
 
                         <div class="col-md-1">
 
-                            <button type="button"
-                                    class="btn btn-danger btn-sm remove-item">
+                           <button type="button"
+        class="btn btn-outline-danger remove-item w-100"
+        title="Remove product">
 
-                                Remove
+    <i class="bi bi-trash"></i>
 
-                            </button>
+</button>
 
                         </div>
 

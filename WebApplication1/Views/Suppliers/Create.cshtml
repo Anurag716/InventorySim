@@ -1,100 +1,175 @@
 ﻿@model Inventory.Models.Supplier
 
 @{
-    ViewData["Title"] = "Create Supplier";
+ViewData["Title"] = "Create Supplier";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
-    <h2 class="mb-4">Create Supplier</h2>
 
-    <form asp-action="Create" method="post">
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
 
-        <div asp-validation-summary="ModelOnly"
-             class="text-danger mb-3">
+    <div>
+        <h2>Create Supplier</h2>
+        <p>Add a new supplier and maintain their contact information.</p>
+    </div>
+
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Suppliers
+    </a>
+
+</div>
+
+<!-- Form Section -->
+<div class="row justify-content-center">
+
+    <div class="col-12 col-lg-10 col-xl-8">
+
+        <div class="inventra-form-section">
+
+            <div class="inventra-form-section-header">
+                <div>
+                    <h5 class="mb-1">
+                        Supplier Details
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Enter the supplier's business and contact information.
+                    </p>
+                </div>
+            </div>
+
+            <div class="inventra-form-section-body">
+
+                <form asp-action="Create" method="post">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
+
+                    <div class="row">
+
+                        <!-- Supplier Name -->
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <label asp-for="Name"
+                                   class="form-label fw-semibold">
+                                Supplier Name
+                            </label>
+
+                            <input asp-for="Name"
+                                   class="form-control"
+                                   placeholder="Enter supplier name" />
+
+                            <span asp-validation-for="Name"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <!-- Contact Person -->
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <label asp-for="ContactPerson"
+                                   class="form-label fw-semibold">
+                                Contact Person
+                            </label>
+
+                            <input asp-for="ContactPerson"
+                                   class="form-control"
+                                   placeholder="Enter contact person" />
+
+                            <span asp-validation-for="ContactPerson"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <label asp-for="Phone"
+                                   class="form-label fw-semibold">
+                                Phone
+                            </label>
+
+                            <input asp-for="Phone"
+                                   class="form-control"
+                                   placeholder="Enter phone number" />
+
+                            <span asp-validation-for="Phone"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-12 col-md-6 mb-4">
+
+                            <label asp-for="Email"
+                                   class="form-label fw-semibold">
+                                Email
+                            </label>
+
+                            <input asp-for="Email"
+                                   class="form-control"
+                                   placeholder="supplier@example.com" />
+
+                            <span asp-validation-for="Email"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-12 mb-4">
+
+                            <label asp-for="Address"
+                                   class="form-label fw-semibold">
+                                Address
+                            </label>
+
+                            <textarea asp-for="Address"
+                                      class="form-control"
+                                      rows="5"
+                                      placeholder="Enter supplier address"></textarea>
+
+                            <span asp-validation-for="Address"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="inventra-form-actions">
+
+                        <a asp-action="Index"
+                           class="btn btn-light border">
+                            <i class="bi bi-x-lg me-1"></i>
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>
+                            Save Supplier
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">
-                Supplier Name
-            </label>
+    </div>
 
-            <input asp-for="Name"
-                   class="form-control" />
-
-            <span asp-validation-for="Name"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="ContactPerson"
-                   class="form-label">
-                Contact Person
-            </label>
-
-            <input asp-for="ContactPerson"
-                   class="form-control" />
-
-            <span asp-validation-for="ContactPerson"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Phone"
-                   class="form-label">
-                Phone
-            </label>
-
-            <input asp-for="Phone"
-                   class="form-control" />
-
-            <span asp-validation-for="Phone"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Email"
-                   class="form-label">
-                Email
-            </label>
-
-            <input asp-for="Email"
-                   class="form-control" />
-
-            <span asp-validation-for="Email"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Address"
-                   class="form-label">
-                Address
-            </label>
-
-            <textarea asp-for="Address"
-                      class="form-control"
-                      rows="4">
-            </textarea>
-
-            <span asp-validation-for="Address"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <button type="submit"
-                class="btn btn-primary">
-            Save Supplier
-        </button>
-
-        <a asp-action="Index"
-           class="btn btn-secondary">
-            Cancel
-        </a>
-
-    </form>
+</div>
 
 </div>

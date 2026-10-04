@@ -1,42 +1,97 @@
-﻿@model Inventory.ViewModels.ReturnCreateViewModel
+﻿
+@model Inventory.ViewModels.ReturnCreateViewModel
 
 @{
     ViewData["Title"] = "Return Sale";
 }
 
+<!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1">Return Sale</h2>
-        <p class="text-muted mb-0">
-            Process a return for sale
-            <strong>@Model.SaleNumber</strong>.
-        </p>
+
+    <div class="d-flex align-items-center gap-3">
+
+        <div class="d-flex align-items-center justify-content-center
+                    bg-danger-subtle text-danger rounded-3"
+             style="width: 52px; height: 52px;">
+
+            <i class="bi bi-arrow-return-left fs-4"></i>
+
+        </div>
+
+        <div>
+
+            <div class="d-flex align-items-center gap-2">
+
+                <h2 class="mb-0 fw-bold">
+                    Return Sale
+                </h2>
+
+                <span class="badge bg-success-subtle text-success">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Paid
+                </span>
+
+            </div>
+
+            <p class="text-muted mb-0 mt-1">
+
+                Process a return for sale
+
+                <strong class="text-dark">
+                    @Model.SaleNumber
+                </strong>
+
+                <span class="mx-1">•</span>
+
+                <span>
+                    @Model.CustomerName
+                </span>
+
+            </p>
+
+        </div>
+
     </div>
+
 
     <a asp-controller="Sales"
        asp-action="Index"
        class="btn btn-outline-secondary">
+
         <i class="bi bi-arrow-left me-1"></i>
         Back to Sales
+
     </a>
+
 </div>
+
 
 <div class="row g-4">
 
     <!-- Sale Information -->
     <div class="col-12">
+
         <div class="card shadow-sm border-0">
+
             <div class="card-header bg-white">
+
                 <h5 class="mb-0">
+
                     <i class="bi bi-receipt me-2"></i>
+
                     Sale Information
+
                 </h5>
+
             </div>
 
+
             <div class="card-body">
+
                 <div class="row">
 
                     <div class="col-md-4">
+
                         <small class="text-muted">
                             Sale Number
                         </small>
@@ -44,9 +99,12 @@
                         <div class="fw-semibold">
                             @Model.SaleNumber
                         </div>
+
                     </div>
 
+
                     <div class="col-md-4">
+
                         <small class="text-muted">
                             Customer
                         </small>
@@ -54,9 +112,12 @@
                         <div class="fw-semibold">
                             @Model.CustomerName
                         </div>
+
                     </div>
 
+
                     <div class="col-md-4">
+
                         <small class="text-muted">
                             Sale Date
                         </small>
@@ -64,11 +125,15 @@
                         <div class="fw-semibold">
                             @Model.SaleDate.ToString("dd-MM-yyyy HH:mm")
                         </div>
+
                     </div>
 
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
 
@@ -78,11 +143,17 @@
         <div class="card shadow-sm border-0">
 
             <div class="card-header bg-white">
+
                 <h5 class="mb-0">
+
                     <i class="bi bi-box-seam me-2"></i>
+
                     Products
+
                 </h5>
+
             </div>
+
 
             <div class="card-body p-0">
 
@@ -93,19 +164,35 @@
                         <thead class="table-light">
 
                             <tr>
-                                <th>Product</th>
-                                <th>Purchased</th>
-                                <th>Returned</th>
-                                <th>Returnable</th>
+
+                                <th>
+                                    Product
+                                </th>
+
+                                <th>
+                                    Purchased
+                                </th>
+
+                                <th>
+                                    Returned
+                                </th>
+
+                                <th>
+                                    Returnable
+                                </th>
+
                                 <th style="width: 140px;">
                                     Return Qty
                                 </th>
+
                                 <th class="text-end">
                                     Refund
                                 </th>
+
                             </tr>
 
                         </thead>
+
 
                         <tbody>
 
@@ -116,6 +203,7 @@
                                     data-unit-price="@Model.Items[i].UnitPrice">
 
                                     <td>
+
                                         <div class="fw-semibold">
                                             @Model.Items[i].ProductName
                                         </div>
@@ -123,17 +211,22 @@
                                         <small class="text-muted">
                                             @Model.Items[i].Sku
                                         </small>
+
                                     </td>
+
 
                                     <td>
                                         @Model.Items[i].PurchasedQuantity
                                     </td>
 
+
                                     <td>
                                         @Model.Items[i].AlreadyReturnedQuantity
                                     </td>
 
+
                                     <td>
+
                                         @if (Model.Items[i].ReturnableQuantity > 0)
                                         {
                                             <span class="badge bg-success">
@@ -146,9 +239,12 @@
                                                 0
                                             </span>
                                         }
+
                                     </td>
 
+
                                     <td>
+
                                         <input type="number"
                                                class="form-control return-quantity"
                                                name="Items[@i].ReturnQuantity"
@@ -161,10 +257,16 @@
                                         <input type="hidden"
                                                name="Items[@i].SaleItemId"
                                                value="@Model.Items[i].SaleItemId" />
+
                                     </td>
 
+
                                     <td class="text-end fw-semibold">
-                                        ₹<span class="refund-amount">0.00</span>
+
+                                        ₹<span class="refund-amount">
+                                            0.00
+                                        </span>
+
                                     </td>
 
                                 </tr>
@@ -189,18 +291,25 @@
         <div class="card shadow-sm border-0">
 
             <div class="card-header bg-white">
+
                 <h5 class="mb-0">
+
                     <i class="bi bi-cash-stack me-2"></i>
+
                     Return Summary
+
                 </h5>
+
             </div>
+
 
             <div class="card-body">
 
                 <div class="mb-3">
 
                     <label class="form-label">
-                        Return Reason <span class="text-danger">*</span>
+                        Return Reason
+                        <span class="text-danger">*</span>
                     </label>
 
                     <textarea id="reason"
@@ -209,14 +318,18 @@
                               maxlength="500"
                               placeholder="Enter reason for return..."
                               required></textarea>
+
                     <span asp-validation-for="Reason"
-                          class="text-danger"></span>
+                          class="text-danger">
+                    </span>
 
                 </div>
+
 
                 <div class="border-top pt-3">
 
                     <div class="d-flex justify-content-between mb-2">
+
                         <span>
                             Refund Amount
                         </span>
@@ -224,7 +337,9 @@
                         <strong id="totalRefund">
                             ₹0.00
                         </strong>
+
                     </div>
+
 
                     <div class="d-flex justify-content-between">
 
@@ -239,6 +354,7 @@
                     </div>
 
                 </div>
+
 
                 <div class="alert alert-info mt-3 mb-0">
 
@@ -271,6 +387,7 @@
 
     </a>
 
+
     <form id="returnForm"
           asp-controller="Returns"
           asp-action="Create"
@@ -286,6 +403,7 @@
                name="Reason"
                id="reasonHidden" />
 
+
         @for (int i = 0; i < Model.Items.Count; i++)
         {
             <input type="hidden"
@@ -300,22 +418,30 @@
 
     </form>
 
+
     <button type="button"
             id="processReturnButton"
             class="btn btn-danger"
             disabled>
 
         <i class="bi bi-arrow-return-left me-1"></i>
+
         Process Return
 
     </button>
 
 </div>
 
+
+<!-- Processing Overlay -->
+
 <div id="returnProcessingOverlay"
      class="return-processing-overlay d-none">
 
     <div class="return-processing-card">
+
+
+        <!-- Spinner -->
 
         <div id="returnSpinner">
 
@@ -334,20 +460,27 @@
         </div>
 
 
+        <!-- Success -->
+
         <div id="returnSuccess"
              class="d-none">
 
             <div class="return-success-icon mb-3">
+
                 <i class="bi bi-check-lg"></i>
+
             </div>
+
 
             <h4 class="text-success mb-2">
                 Return Successful
             </h4>
 
+
             <p id="returnSuccessMessage"
                class="text-muted mb-4">
             </p>
+
 
             <div class="cash-refund-box mb-4">
 
@@ -355,47 +488,65 @@
                     CASH REFUND
                 </div>
 
+
                 <div id="cashRefundAmount"
                      class="cash-refund-amount">
+
                     ₹0.00
+
                 </div>
 
+
                 <div class="text-muted mt-2">
+
                     Please hand this amount to the customer.
+
                 </div>
 
             </div>
+
 
             <button type="button"
                     id="returnDoneButton"
                     class="btn btn-primary btn-lg px-5">
 
                 <i class="bi bi-check-circle me-2"></i>
+
                 Done
 
             </button>
 
         </div>
 
+
+        <!-- Error -->
+
         <div id="returnError"
              class="d-none">
 
             <div class="return-error-icon mb-3">
+
                 <i class="bi bi-x-lg"></i>
+
             </div>
+
 
             <h4 class="text-danger">
                 Return Failed
             </h4>
 
+
             <p id="returnErrorMessage"
                class="text-muted mb-0">
             </p>
 
+
             <button type="button"
                     class="btn btn-outline-secondary mt-3"
                     onclick="closeReturnOverlay()">
+
                 Close
+
             </button>
 
         </div>
@@ -403,7 +554,10 @@
     </div>
 
 </div>
+
+
 <style>
+
     .return-processing-overlay {
         position: fixed;
         inset: 0;
@@ -415,9 +569,9 @@
         justify-content: center;
     }
 
-        .return-processing-overlay.d-none {
-            display: none !important;
-        }
+    .return-processing-overlay.d-none {
+        display: none !important;
+    }
 
     .cash-refund-box {
         background: #f8f9fa;
@@ -464,13 +618,16 @@
         background: #f8d7da;
         color: #dc3545;
     }
+
 </style>
+
 
 @section Scripts {
 
     <script>
 
         const saleId = @Model.SaleId;
+
 
         function formatMoney(value) {
 
@@ -486,6 +643,7 @@
 
             let totalRefund = 0;
             let hasReturnQuantity = false;
+
 
             document
                 .querySelectorAll(".return-item-row")
@@ -506,10 +664,15 @@
                     let quantity =
                         Number(quantityInput.value);
 
+
                     if (isNaN(quantity) || quantity < 0) {
+
                         quantity = 0;
+
                         quantityInput.value = 0;
+
                     }
+
 
                     if (quantity > maxQuantity) {
 
@@ -517,15 +680,20 @@
 
                         quantityInput.value =
                             maxQuantity;
+
                     }
+
 
                     const refund =
                         quantity * unitPrice;
 
+
                     refundElement.textContent =
                         formatMoney(refund);
 
+
                     totalRefund += refund;
+
 
                     if (quantity > 0) {
                         hasReturnQuantity = true;
@@ -534,13 +702,16 @@
                 });
 
 
-            document.getElementById("totalRefund")
+            document
+                .getElementById("totalRefund")
                 .textContent =
                 "₹" + formatMoney(totalRefund);
 
 
-            document.getElementById("processReturnButton")
-                .disabled = !hasReturnQuantity;
+            document
+                .getElementById("processReturnButton")
+                .disabled =
+                !hasReturnQuantity;
 
         }
 
@@ -559,125 +730,176 @@
 
         calculateRefunds();
 
+
         document
             .getElementById("processReturnButton")
-            .addEventListener("click", async function () {
+            .addEventListener(
+                "click",
+                async function () {
 
-                const button = this;
-
-                const reason =
-                    document.getElementById("reason").value;
-
-                const reasonHidden =
-                    document.getElementById("reasonHidden");
-
-                reasonHidden.value = reason;
+                    const button = this;
 
 
-                // Copy visible quantities into hidden fields.
-                document
-                    .querySelectorAll(".return-quantity")
-                    .forEach(function (input) {
-
-                        const index =
-                            input.dataset.index;
-
-                        const hidden =
-                            document.getElementById(
-                                "returnQuantity_" + index
-                            );
-
-                        hidden.value =
-                            input.value || "0";
-
-                    });
+                    const reason =
+                        document
+                            .getElementById("reason")
+                            .value;
 
 
-                const form =
-                    document.getElementById("returnForm");
-
-                const formData =
-                    new FormData(form);
+                    const reasonHidden =
+                        document
+                            .getElementById("reasonHidden");
 
 
-                const overlay =
-                    document.getElementById(
-                        "returnProcessingOverlay"
-                    );
-
-                const spinner =
-                    document.getElementById("returnSpinner");
-
-                const success =
-                    document.getElementById("returnSuccess");
-
-                const error =
-                    document.getElementById("returnError");
+                    reasonHidden.value = reason;
 
 
-                overlay.classList.remove("d-none");
+                    // Copy visible quantities into hidden fields.
 
-                spinner.classList.remove("d-none");
-                success.classList.add("d-none");
-                error.classList.add("d-none");
+                    document
+                        .querySelectorAll(".return-quantity")
+                        .forEach(function (input) {
 
-                button.disabled = true;
+                            const index =
+                                input.dataset.index;
+
+                            const hidden =
+                                document.getElementById(
+                                    "returnQuantity_" + index
+                                );
+
+                            hidden.value =
+                                input.value || "0";
+
+                        });
 
 
-                try {
+                    const form =
+                        document.getElementById("returnForm");
 
-                    const response =
-                        await fetch(
-                            form.action,
-                            {
-                                method: "POST",
-                                body: formData
-                            }
+
+                    const formData =
+                        new FormData(form);
+
+
+                    const overlay =
+                        document.getElementById(
+                            "returnProcessingOverlay"
                         );
 
 
-                    const result =
-                        await response.json();
+                    const spinner =
+                        document.getElementById("returnSpinner");
 
 
-                    spinner.classList.add("d-none");
+                    const success =
+                        document.getElementById("returnSuccess");
 
 
-                    if (response.ok && result.success) {
-
-                        document
-                            .getElementById(
-                                "returnSuccessMessage"
-                            )
-                            .textContent =
-                            `Return ${result.returnNumber} processed successfully. ` +
-                            `Cash refund: ₹${formatMoney(result.refundAmount)}.`;
+                    const error =
+                        document.getElementById("returnError");
 
 
-                        success.classList.remove("d-none");
-                        document
-                            .getElementById("cashRefundAmount")
-                            .textContent =
-                            "₹" + formatMoney(result.refundAmount);
+                    overlay.classList.remove("d-none");
+
+                    spinner.classList.remove("d-none");
+
+                    success.classList.add("d-none");
+
+                    error.classList.add("d-none");
+
+                    button.disabled = true;
+
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                form.action,
+                                {
+                                    method: "POST",
+                                    body: formData
+                                }
+                            );
+
+
+                        const result =
+                            await response.json();
+
+
+                        spinner.classList.add("d-none");
+
+
+                        if (response.ok && result.success) {
 
                             document
-        .getElementById("returnDoneButton")
-        .addEventListener("click", function () {
+                                .getElementById(
+                                    "returnSuccessMessage"
+                                )
+                                .textContent =
+                                `Return ${result.returnNumber} processed successfully. ` +
+                                `Cash refund: ₹${formatMoney(result.refundAmount)}.`;
 
-            window.location.href = "/Returns";
 
-        });
+                            success.classList.remove("d-none");
+
+
+                            document
+                                .getElementById(
+                                    "cashRefundAmount"
+                                )
+                                .textContent =
+                                "₹" +
+                                formatMoney(
+                                    result.refundAmount
+                                );
+
+
+                            document
+                                .getElementById(
+                                    "returnDoneButton"
+                                )
+                                .addEventListener(
+                                    "click",
+                                    function () {
+
+                                        window.location.href =
+                                            "/Returns";
+
+                                    }
+                                );
+
+                        }
+                        else {
+
+                            document
+                                .getElementById(
+                                    "returnErrorMessage"
+                                )
+                                .textContent =
+                                result.message ||
+                                "Unable to process the return.";
+
+
+                            error.classList.remove("d-none");
+
+                            button.disabled = false;
+
+                        }
 
                     }
-                    else {
+                    catch (error) {
+
+                        spinner.classList.add("d-none");
+
 
                         document
                             .getElementById(
                                 "returnErrorMessage"
                             )
                             .textContent =
-                            result.message ||
-                            "Unable to process the return.";
+                            "An unexpected error occurred.";
+
 
                         error.classList.remove("d-none");
 
@@ -686,24 +908,7 @@
                     }
 
                 }
-                catch (error) {
-
-                    spinner.classList.add("d-none");
-
-                    document
-                        .getElementById(
-                            "returnErrorMessage"
-                        )
-                        .textContent =
-                        "An unexpected error occurred.";
-
-                    error.classList.remove("d-none");
-
-                    button.disabled = false;
-
-                }
-
-            });
+            );
 
 
         function closeReturnOverlay() {

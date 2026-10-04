@@ -5,32 +5,33 @@
     ViewData["Title"] = "Sales";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2 class="mb-1">Sales</h2>
-        <p class="text-muted mb-0">
-            View and manage sales transactions.
-        </p>
-    </div>
+<div class="page-header d-flex justify-content-between align-items-center">
 
     <div>
+        <h2>Sales History</h2>
+        <p>View completed sales, invoices, payments, and transaction details.</p>
+    </div>
+
+    <div class="d-flex gap-2">
+
         @if (User.IsInRole("Admin"))
         {
             <a asp-action="ExportCsv"
-               class="btn btn-outline-success me-2">
-                <i class="bi bi-download"></i>
+               class="btn btn-outline-success">
+                <i class="bi bi-download me-1"></i>
                 Export CSV
             </a>
         }
 
         <a asp-action="Create"
            class="btn btn-primary">
-            <i class="bi bi-cart-plus"></i>
+            <i class="bi bi-cart-plus me-1"></i>
             New Sale
         </a>
-    </div>
-</div>
 
+    </div>
+
+</div>
 
 <!-- Filters -->
 <div class="card shadow-sm mb-4">
@@ -597,6 +598,16 @@
 
             <div class="modal-footer">
 
+                <a id="returnSaleButton"
+                   href="#"
+                   class="btn btn-outline-danger"
+                   style="display: none;">
+
+                    <i class="bi bi-arrow-return-left me-1"></i>
+                    Return Sale
+
+                </a>
+
                 <button type="button"
                         class="btn btn-outline-secondary"
                         data-bs-dismiss="modal">
@@ -840,6 +851,11 @@
 
             const modalElement =
                 document.getElementById("saleDetailsModal");
+             const returnSaleButton =
+                    document.getElementById("returnSaleButton");
+
+                    returnSaleButton.style.display = "none";
+                    returnSaleButton.href = "#";
 
             const loading =
                 document.getElementById("saleDetailsLoading");
@@ -920,6 +936,11 @@
 
                     statusElement.textContent =
                         "Paid";
+
+                    returnSaleButton.href =
+                        `/Returns/Create?saleId=${saleId}`;
+
+                    returnSaleButton.style.display = "";
 
                 }
                 else if (sale.status === "PendingPayment") {

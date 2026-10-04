@@ -16,6 +16,32 @@ namespace Inventory.Controllers
         {
             _context = context;
         }
+        private bool CanAccessSale(Sale sale)
+        {
+            // Admin can access any sale.
+            if (User.IsInRole("Admin"))
+            {
+                return true;
+            }
+
+            // Cashier can access only their own sales.
+            if (User.IsInRole("Cashier"))
+            {
+                var userIdClaim =
+                    User.FindFirst(ClaimTypes.NameIdentifier);
+
+                if (userIdClaim == null ||
+                    !int.TryParse(userIdClaim.Value, out int userId))
+                {
+                    return false;
+                }
+
+                return sale.CashierUserId == userId;
+            }
+
+            // Any other role is not allowed.
+            return false;
+        }
 
         // GET: Returns/Index
         [HttpGet]
@@ -179,6 +205,61 @@ namespace Inventory.Controllers
             return value;
         }
 
+        // GET: /Returns/FindSale?saleNumber=SAL-20261003123456
+        [HttpGet]
+        public async Task<IActionResult> FindSale(string saleNumber)
+        {
+            if (string.IsNullOrWhiteSpace(saleNumber))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Please enter a sale number."
+                });
+            }
+
+            saleNumber = saleNumber.Trim();
+
+            var sale = await _context.Sales
+                .FirstOrDefaultAsync(s =>
+                    s.SaleNumber == saleNumber);
+
+            if (sale == null)
+            {
+                return NotFound(new
+                {
+                    success = false,
+                    message = "Sale not found. Please check the sale number."
+                });
+            }
+
+            // Only paid sales can be returned.
+            if (sale.Status != "Paid")
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Only paid sales can be returned."
+                });
+            }
+
+            if (!CanAccessSale(sale))
+            {
+                return StatusCode(403, new
+                {
+                    success = false,
+                    message = "You can only process returns for your own sales."
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                saleId = sale.SaleId,
+                saleNumber = sale.SaleNumber
+            });
+        }
+
 
         // get: /Returns/Create?saleId=123
 
@@ -201,8 +282,7 @@ namespace Inventory.Controllers
                 return BadRequest("Only paid sales can be returned.");
 
             // Cashier can only process returns for their own sales.
-            if (User.IsInRole("Cashier"))
-            {
+            
                 var userIdClaim =
                     User.FindFirst(ClaimTypes.NameIdentifier);
 
@@ -212,9 +292,16 @@ namespace Inventory.Controllers
                 if (!int.TryParse(userIdClaim.Value, out int userId))
                     return Unauthorized();
 
-                if (sale.CashierUserId != userId)
-                    return Forbid();
+            if (!CanAccessSale(sale))
+            {
+                return StatusCode(403, new
+                {
+                    success = false,
+                    message = "You can only process returns for your own sales."
+                });
             }
+
+
 
             var viewModel = new ReturnCreateViewModel
             {

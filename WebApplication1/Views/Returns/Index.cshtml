@@ -4,16 +4,11 @@
     ViewData["Title"] = "Returns";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="page-header d-flex justify-content-between align-items-center">
 
     <div>
-        <h2 class="fw-bold mb-1">
-            Returns
-        </h2>
-
-        <p class="text-muted mb-0">
-            View processed product returns and cash refunds.
-        </p>
+        <h2>Returns</h2>
+        <p>Manage product returns and process customer refunds.</p>
     </div>
 
     <div class="d-flex gap-2">
@@ -30,9 +25,20 @@
             </a>
         }
 
-        <a asp-controller="Sales"
+       
+
+        <button type="button"
+        class="btn btn-primary"
+        data-bs-toggle="modal"
+        data-bs-target="#findSaleModal">
+
+            <i class="bi bi-plus-lg me-1"></i>
+            New Return
+
+        </button>
+         <a asp-controller="Sales"
            asp-action="Index"
-           class="btn btn-primary">
+           class="btn btn-outline-secondary">
 
             <i class="bi bi-arrow-left me-2"></i>
             Back to Sales
@@ -42,7 +48,6 @@
     </div>
 
 </div>
-
     
     <div class="card shadow-sm border-0 mb-3">
 
@@ -96,6 +101,21 @@
                        class="form-control" />
 
             </div>
+            <div class="col-md-1">
+                <label class="form-label">
+                    &nbsp;
+                </label>
+
+    <button type="button"
+            id="resetReturnFilters"
+            class="btn btn-outline-secondary w-100"
+            title="Reset filters">
+
+        <i class="bi bi-arrow-clockwise"></i>
+
+    </button>
+
+</div>
 
         </div>
 
@@ -226,6 +246,105 @@
     </div>
 
 </div>
+
+
+<!-- Find Sale Modal -->
+<div class="modal fade"
+     id="findSaleModal"
+     tabindex="-1"
+     aria-labelledby="findSaleModalLabel"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <div>
+                    <h5 class="modal-title"
+                        id="findSaleModalLabel">
+
+                        <i class="bi bi-search me-2"></i>
+                        Find Sale
+
+                    </h5>
+
+                    <small class="text-muted">
+                        Enter the sale number to start a return.
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <form id="findSaleForm">
+
+                    <div class="mb-3">
+
+                        <label for="returnSaleNumber"
+                               class="form-label">
+
+                            Sale Number
+
+                        </label>
+
+                        <input type="text"
+                               id="returnSaleNumber"
+                               class="form-control"
+                               placeholder="e.g. SAL-20261003123456"
+                               autocomplete="off" />
+
+                        <div class="form-text">
+                            Enter the sale number from Sales History.
+                        </div>
+
+                    </div>
+
+                    <div id="findSaleError"
+                         class="alert alert-danger d-none mb-0">
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+                <button type="button"
+                        id="findSaleButton"
+                        class="btn btn-primary">
+
+                    <i class="bi bi-search me-1"></i>
+                    Find Sale
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
 <div class="modal fade"
      id="returnDetailsModal"
      tabindex="-1"
@@ -592,14 +711,131 @@
         );
     }
 
+    
+    // =====================================
+// Find Sale For New Return
+// =====================================
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const findSaleButton =
+        document.getElementById("findSaleButton");
+
+    const saleNumberInput =
+        document.getElementById("returnSaleNumber");
+
+    const findSaleError =
+        document.getElementById("findSaleError");
+
+
+    findSaleButton.addEventListener(
+        "click",
+        async function () {
+
+            const saleNumber =
+                saleNumberInput.value.trim();
+
+            findSaleError.classList.add("d-none");
+            findSaleError.textContent = "";
+
+
+            if (!saleNumber) {
+
+                findSaleError.textContent =
+                    "Please enter a sale number.";
+
+                findSaleError.classList.remove("d-none");
+
+                return;
+            }
+
+
+            const originalButtonContent =
+                findSaleButton.innerHTML;
+
+
+            findSaleButton.disabled = true;
+
+            findSaleButton.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-1"
+                      role="status"
+                      aria-hidden="true">
+                </span>
+                Finding...
+            `;
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/Returns/FindSale?saleNumber=${encodeURIComponent(saleNumber)}`
+                    );
+
+
+                const result =
+                    await response.json();
+
+
+                if (!response.ok || !result.success) {
+
+                    throw new Error(
+                        result.message ||
+                        "Unable to find the sale."
+                    );
+
+                }
+
+
+                window.location.href =
+                    `/Returns/Create?saleId=${result.saleId}`;
+
+            }
+            catch (error) {
+
+                findSaleError.textContent =
+                    error.message ||
+                    "Unable to find the sale.";
+
+                findSaleError.classList.remove("d-none");
+
+            }
+            finally {
+
+                findSaleButton.disabled = false;
+
+                findSaleButton.innerHTML =
+                    originalButtonContent;
+
+            }
+
+        }
+    );
+
+
+    // Allow Enter key to search.
+    saleNumberInput.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Enter") {
+
+                event.preventDefault();
+
+                findSaleButton.click();
+
+            }
+
+        }
+    );
+
+});
+
 </script>
 <script>
 
     const returnSearch =
         document.getElementById("returnSearch");
-
-    const returnStatusFilter =
-        document.getElementById("returnStatusFilter");
 
     const returnFromDate =
         document.getElementById("returnFromDate");
@@ -612,6 +848,8 @@
 
     const noReturnResults =
         document.getElementById("noReturnResults");
+    const resetReturnFilters =
+        document.getElementById("resetReturnFilters");
 
 
     function filterReturns() {
@@ -620,9 +858,6 @@
             returnSearch.value
                 .trim()
                 .toLowerCase();
-
-        const status =
-            returnStatusFilter.value;
 
         const fromDate =
             returnFromDate.value;
@@ -636,7 +871,7 @@
         returnRows.forEach(function (row) {
 
             const returnNumber =
-                row.dataset.returnNumber
+                (row.dataset.returnNumber || "")
                     .toLowerCase();
 
             const saleNumber =
@@ -647,13 +882,11 @@
                 (row.dataset.customer || "")
                     .toLowerCase();
 
-            const rowStatus =
-                row.dataset.status;
-
             const rowDate =
-                row.dataset.date;
+                row.dataset.date || "";
 
 
+            // Search filter
             const matchesSearch =
                 !search ||
                 returnNumber.includes(search) ||
@@ -661,16 +894,13 @@
                 customer.includes(search);
 
 
-            const matchesStatus =
-                !status ||
-                rowStatus === status;
-
-
+            // From date filter
             const matchesFromDate =
                 !fromDate ||
                 rowDate >= fromDate;
 
 
+            // To date filter
             const matchesToDate =
                 !toDate ||
                 rowDate <= toDate;
@@ -678,7 +908,6 @@
 
             const visible =
                 matchesSearch &&
-                matchesStatus &&
                 matchesFromDate &&
                 matchesToDate;
 
@@ -700,27 +929,42 @@
             "d-none",
             visibleCount !== 0
         );
+
     }
 
 
+    // Search while typing.
     returnSearch.addEventListener(
         "input",
         filterReturns
     );
 
-    returnStatusFilter.addEventListener(
-        "change",
-        filterReturns
-    );
 
+    // From date changes immediately.
     returnFromDate.addEventListener(
         "change",
         filterReturns
     );
 
+
+    // To date changes immediately.
     returnToDate.addEventListener(
         "change",
         filterReturns
     );
+
+    // Reset filters button
+    resetReturnFilters.addEventListener(
+    "click",
+    function () {
+
+        returnSearch.value = "";
+        returnFromDate.value = "";
+        returnToDate.value = "";
+
+        filterReturns();
+
+    }
+);
 
 </script>

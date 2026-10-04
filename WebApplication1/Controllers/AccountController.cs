@@ -22,12 +22,26 @@ namespace Inventory.Controllers
             _passwordService = passwordService;
         }
 
+        // Public landing page
+        [HttpGet]
+        public IActionResult Index()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            return View();
+        }
+
+        // Login page
         [HttpGet]
         public IActionResult Login()
         {
             return View();
         }
 
+        // Login processing
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
@@ -83,6 +97,7 @@ namespace Inventory.Controllers
             return RedirectToAction("Index", "Home");
         }
 
+        // Logout
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
@@ -90,14 +105,14 @@ namespace Inventory.Controllers
             await HttpContext.SignOutAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme);
 
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Account");
         }
 
+        // Access denied
         [HttpGet]
         public IActionResult AccessDenied()
         {
             return View();
         }
-
     }
 }

@@ -4,7 +4,7 @@
     ViewData["Title"] = "Purchases";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
     @* Success message *@
     @if (TempData["SuccessMessage"] != null)
@@ -39,18 +39,17 @@
     }
 
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
-
+    <div class="page-header d-flex justify-content-between align-items-center">
+    <div>
         <h2>Purchases</h2>
-
-        <a asp-action="Create"
-           class="btn btn-primary">
-
-            Add Purchase
-
-        </a>
-
+        <p>Manage supplier purchases and update inventory stock.</p>
     </div>
+
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>
+        New Purchase
+    </a>
+</div>
 
 
     <table class="table table-bordered table-striped">

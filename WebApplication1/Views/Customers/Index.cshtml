@@ -8,31 +8,30 @@
 <div class="container-fluid">
 
     <!-- Page Header -->
-    <div class="d-flex justify-content-between mb-4">
+    <div class="page-header d-flex justify-content-between align-items-center">
 
-    <div>
-        <h2 class="mb-1">Customers</h2>
-        <p class="text-muted mb-0">
-            Manage your customer records.
-        </p>
+        <div>
+            <h2>Customers</h2>
+            <p>Manage customer information and purchase relationships.</p>
+        </div>
+
+        <div class="d-flex gap-2">
+
+            <a asp-action="ExportCsv"
+               class="btn btn-outline-success">
+                <i class="bi bi-download me-1"></i>
+                Export CSV
+            </a>
+
+            <a asp-action="Create"
+               class="btn btn-primary">
+                <i class="bi bi-person-plus me-1"></i>
+                Add Customer
+            </a>
+
+        </div>
+
     </div>
-
-    <div class="d-flex align-items-end">
-        <a asp-action="ExportCsv"
-           class="btn btn-success me-2">
-            <i class="bi bi-download"></i>
-             Export CSV
-        </a>
-
-        <a asp-action="Create"
-           class="btn btn-primary">
-            <i class="bi bi-person-plus"></i>
-             Add Customer
-        </a>
-    </div>
-
-</div>
-
     <div class="card shadow-sm">
         <div class="card-body">
 

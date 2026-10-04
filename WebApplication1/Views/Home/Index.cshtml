@@ -1,8 +1,1041 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model Inventory.ViewModels.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+
+    var isAdmin = Model.Role == "Admin";
+    var isCashier = Model.Role == "Cashier";
+
+    var recentSales = isAdmin
+        ? Model.RecentSales
+        : Model.MyRecentSales;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    /* =========================================================
+       INVENTRA DASHBOARD
+       ========================================================= */
+
+    .dashboard-page {
+        padding-bottom: 2rem;
+    }
+
+    .dashboard-hero {
+        position: relative;
+        overflow: hidden;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(135deg, #172554 0%, #1e3a8a 55%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.15);
+    }
+
+    .dashboard-hero::before {
+        content: "";
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.07);
+        right: -70px;
+        top: -90px;
+    }
+
+    .dashboard-hero::after {
+        content: "";
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.05);
+        right: 130px;
+        bottom: -100px;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+        background: rgba(255, 255, 255, 0.12);
+        font-size: 0.8rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .hero-title {
+        font-size: clamp(1.7rem, 3vw, 2.35rem);
+        font-weight: 700;
+        margin-bottom: 0.45rem;
+    }
+
+    .hero-subtitle {
+        color: rgba(255, 255, 255, 0.75);
+        margin-bottom: 0;
+    }
+
+    .hero-date {
+        position: relative;
+        z-index: 2;
+        text-align: right;
+        color: rgba(255, 255, 255, 0.85);
+    }
+
+    /* =========================================================
+       STAT CARDS
+       ========================================================= */
+
+    .stat-card {
+        border: 0;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, 0.07);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(15, 23, 42, 0.11);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.35rem;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-value {
+        color: #0f172a;
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .stat-description {
+        color: #94a3b8;
+        font-size: 0.76rem;
+        margin-top: 0.35rem;
+    }
+
+    .icon-blue {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .icon-yellow {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .icon-green {
+        background: #dcfce7;
+        color: #16a34a;
+    }
+
+    .icon-purple {
+        background: #ede9fe;
+        color: #7c3aed;
+    }
+
+    /* =========================================================
+       SECTION CARDS
+       ========================================================= */
+
+    .dashboard-card {
+        border: 0;
+        border-radius: 18px;
+        background: #fff;
+        box-shadow: 0 5px 20px rgba(15, 23, 42, 0.07);
+        height: 100%;
+    }
+
+    .dashboard-card-header {
+        padding: 1.35rem 1.4rem 0.8rem;
+        background: transparent;
+        border: 0;
+    }
+
+    .dashboard-card-title {
+        color: #0f172a;
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .dashboard-card-subtitle {
+        color: #94a3b8;
+        font-size: 0.78rem;
+        margin: 0;
+    }
+
+    .dashboard-card-body {
+        padding: 0.8rem 1.4rem 1.4rem;
+    }
+
+    /* =========================================================
+       QUICK ACTIONS
+       ========================================================= */
+
+    .quick-action {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        width: 100%;
+        padding: 0.8rem;
+        margin-bottom: 0.65rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        background: #fff;
+        color: #334155;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .quick-action:last-child {
+        margin-bottom: 0;
+    }
+
+    .quick-action:hover {
+        border-color: #93c5fd;
+        background: #eff6ff;
+        color: #1d4ed8;
+        transform: translateX(3px);
+    }
+
+    .quick-action-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #eff6ff;
+        color: #2563eb;
+        flex-shrink: 0;
+    }
+
+    .quick-action-text {
+        flex-grow: 1;
+        font-size: 0.86rem;
+        font-weight: 600;
+    }
+
+    .quick-action-arrow {
+        color: #94a3b8;
+    }
+
+    /* =========================================================
+       TABLE
+       ========================================================= */
+
+    .dashboard-table {
+        margin-bottom: 0;
+    }
+
+    .dashboard-table thead th {
+        color: #94a3b8;
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 0.7rem 0.5rem;
+        white-space: nowrap;
+    }
+
+    .dashboard-table tbody td {
+        color: #334155;
+        font-size: 0.82rem;
+        padding: 0.85rem 0.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+
+    .dashboard-table tbody tr:last-child td {
+        border-bottom: 0;
+    }
+
+    .sale-number {
+        color: #2563eb;
+        font-weight: 600;
+    }
+
+    .customer-name {
+        font-weight: 500;
+        color: #334155;
+    }
+
+    .sale-date {
+        color: #94a3b8;
+        font-size: 0.75rem;
+    }
+
+    /* =========================================================
+       STOCK ALERTS
+       ========================================================= */
+
+    .stock-item {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .stock-item:last-child {
+        border-bottom: 0;
+    }
+
+    .stock-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .stock-icon-danger {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    .stock-icon-warning {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .stock-name {
+        font-size: 0.83rem;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    .stock-sku {
+        display: block;
+        color: #94a3b8;
+        font-size: 0.72rem;
+        margin-top: 0.1rem;
+    }
+
+    .stock-count {
+        margin-left: auto;
+        text-align: right;
+        white-space: nowrap;
+    }
+
+    .stock-current {
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .stock-limit {
+        color: #94a3b8;
+        font-size: 0.7rem;
+    }
+
+    /* =========================================================
+       EMPTY STATE
+       ========================================================= */
+
+    .empty-state {
+        padding: 2.5rem 1rem;
+        text-align: center;
+        color: #94a3b8;
+    }
+
+    .empty-state-icon {
+        font-size: 2.3rem;
+        margin-bottom: 0.7rem;
+    }
+
+    .empty-state p {
+        font-size: 0.82rem;
+        margin-bottom: 0;
+    }
+
+    /* =========================================================
+       RESPONSIVE
+       ========================================================= */
+
+    @@media (max-width: 767.98px) {
+
+        .dashboard-hero {
+            padding: 1.4rem;
+        }
+
+        .hero-date {
+            text-align: left;
+            margin-top: 1rem;
+        }
+
+        .stat-value {
+            font-size: 1.45rem;
+        }
+
+        .dashboard-card-header,
+        .dashboard-card-body {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+</style>
+
+
+<div class="container-fluid dashboard-page">
+
+    <!-- =====================================================
+         HERO
+         ===================================================== -->
+
+    <div class="dashboard-hero">
+
+        <div class="row align-items-center">
+
+            <div class="col-md-8 hero-content">
+
+                <div class="hero-badge">
+                    <i class="bi bi-shield-check"></i>
+
+                    @if (isAdmin)
+                    {
+                        <span>Administrator Dashboard</span>
+                    }
+                    else
+                    {
+                        <span>Cashier Dashboard</span>
+                    }
+                </div>
+
+                <h1 class="hero-title">
+                    Good @(DateTime.Now.Hour < 12
+                        ? "morning"
+                        : DateTime.Now.Hour < 17
+                            ? "afternoon"
+                            : "evening"),
+                    @Model.UserName 👋
+                </h1>
+
+                <p class="hero-subtitle">
+                    @if (isAdmin)
+                    {
+                        <span>
+                            Here's an overview of your inventory and business activity.
+                        </span>
+                    }
+                    else
+                    {
+                        <span>
+                            Here's your sales activity and today's operational overview.
+                        </span>
+                    }
+                </p>
+
+            </div>
+
+            <div class="col-md-4 hero-date">
+
+                <div>
+                    <i class="bi bi-calendar3 me-1"></i>
+                    @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+                </div>
+
+                <div class="small mt-1 opacity-75">
+                    @Model.Role
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STAT CARDS
+         ===================================================== -->
+
+    <div class="row g-4 mb-4">
+
+        @if (isAdmin)
+        {
+            <!-- Total Products -->
+            <div class="col-xl-3 col-md-6">
+
+                <div class="stat-card">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-start">
+
+                            <div>
+                                <div class="stat-label">
+                                    Total Products
+                                </div>
+
+                                <div class="stat-value">
+                                    @Model.TotalProducts
+                                </div>
+
+                                <div class="stat-description">
+                                    Active products in inventory
+                                </div>
+                            </div>
+
+                            <div class="stat-icon icon-blue">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Low Stock -->
+            <div class="col-xl-3 col-md-6">
+
+                <div class="stat-card">
+
+                    <div class="card-body p-4">
+
+                        <div class="d-flex justify-content-between align-items-start">
+
+                            <div>
+                                <div class="stat-label">
+                                    Low Stock
+                                </div>
+
+                                <div class="stat-value">
+                                    @Model.LowStockProducts
+                                </div>
+
+                                <div class="stat-description">
+                                    Products need attention
+                                </div>
+                            </div>
+
+                            <div class="stat-icon icon-yellow">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+
+        <!-- Today's Sales -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+                            <div class="stat-label">
+                                Today's Sales
+                            </div>
+
+                            <div class="stat-value">
+                                @Model.TodaySales
+                            </div>
+
+                            <div class="stat-description">
+                                Paid transactions today
+                            </div>
+                        </div>
+
+                        <div class="stat-icon icon-green">
+                            <i class="bi bi-cart-check"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Today's Revenue -->
+        <div class="col-xl-3 col-md-6">
+
+            <div class="stat-card">
+
+                <div class="card-body p-4">
+
+                    <div class="d-flex justify-content-between align-items-start">
+
+                        <div>
+                            <div class="stat-label">
+                                Today's Revenue
+                            </div>
+
+                            <div class="stat-value">
+                                @Model.TodayRevenue.ToString(
+                                    "C",
+                                    new System.Globalization.CultureInfo("en-IN"))
+                            </div>
+
+                            <div class="stat-description">
+                                Revenue from paid sales
+                            </div>
+                        </div>
+
+                        <div class="stat-icon icon-purple">
+                            <i class="bi bi-currency-rupee"></i>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+         ===================================================== -->
+
+    <div class="row g-4">
+
+        <!-- =================================================
+             RECENT SALES
+             ================================================= -->
+
+        <div class="col-xl-8">
+
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <div class="dashboard-card-title">
+
+                                @if (isAdmin)
+                                {
+                                    <span>Recent Sales</span>
+                                }
+                                else
+                                {
+                                    <span>My Recent Sales</span>
+                                }
+
+                            </div>
+
+                            <p class="dashboard-card-subtitle">
+                                @if (isAdmin)
+                                {
+                                    <span>Latest transactions across Inventra</span>
+                                }
+                                else
+                                {
+                                    <span>Your latest completed transactions</span>
+                                }
+                            </p>
+                        </div>
+
+                        <a asp-controller="Sales"
+                           asp-action="Index"
+                           class="btn btn-sm btn-outline-primary">
+
+                            <i class="bi bi-arrow-right me-1"></i>
+                            View All
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-card-body">
+
+                    @if (recentSales != null && recentSales.Any())
+                    {
+                        <div class="table-responsive">
+
+                            <table class="table dashboard-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Sale</th>
+                                        <th>Customer</th>
+                                        <th>Date</th>
+                                        <th class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+
+                                    @foreach (var sale in recentSales)
+                                    {
+                                        <tr>
+
+                                            <td>
+                                                <span class="sale-number">
+                                                    @sale.SaleNumber
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="customer-name">
+                                                    @(sale.Customer?.Name ?? "Walk-in Customer")
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <span class="sale-date">
+                                                    @sale.SaleDate.ToString("dd MMM, hh:mm tt")
+                                                </span>
+                                            </td>
+
+                                            <td class="text-end">
+
+                                                <span class="fw-semibold">
+                                                    @sale.GrandTotal.ToString(
+                                                        "C",
+                                                        new System.Globalization.CultureInfo("en-IN"))
+                                                </span>
+
+                                            </td>
+
+                                        </tr>
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+
+                            <div class="empty-state-icon">
+                                <i class="bi bi-receipt"></i>
+                            </div>
+
+                            <p>
+                                No sales available yet.
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             QUICK ACTIONS
+             ================================================= -->
+
+        <div class="col-xl-4">
+
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div class="dashboard-card-title">
+                        Quick Actions
+                    </div>
+
+                    <p class="dashboard-card-subtitle">
+                        Frequently used operations
+                    </p>
+
+                </div>
+
+
+                <div class="dashboard-card-body">
+
+                    <!-- New Sale -->
+                    <a asp-controller="Sales"
+                       asp-action="Create"
+                       class="quick-action">
+
+                        <div class="quick-action-icon">
+                            <i class="bi bi-cart-plus"></i>
+                        </div>
+
+                        <div class="quick-action-text">
+                            New Sale
+                        </div>
+
+                        <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                    </a>
+
+
+                    @if (isAdmin)
+                    {
+                        <!-- Add Product -->
+                        <a asp-controller="Products"
+                           asp-action="Create"
+                           class="quick-action">
+
+                            <div class="quick-action-icon">
+                                <i class="bi bi-box-seam"></i>
+                            </div>
+
+                            <div class="quick-action-text">
+                                Add Product
+                            </div>
+
+                            <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                        </a>
+
+
+                        <!-- New Purchase -->
+                        <a asp-controller="Purchases"
+                           asp-action="Create"
+                           class="quick-action">
+
+                            <div class="quick-action-icon">
+                                <i class="bi bi-bag-plus"></i>
+                            </div>
+
+                            <div class="quick-action-text">
+                                New Purchase
+                            </div>
+
+                            <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                        </a>
+
+
+                        <!-- Reports -->
+                        <a asp-controller="Reports"
+                           asp-action="Index"
+                           class="quick-action">
+
+                            <div class="quick-action-icon">
+                                <i class="bi bi-bar-chart-line"></i>
+                            </div>
+
+                            <div class="quick-action-text">
+                                View Reports
+                            </div>
+
+                            <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                        </a>
+                    }
+                    else
+                    {
+                        <!-- Sales History -->
+                        <a asp-controller="Sales"
+                           asp-action="Index"
+                           class="quick-action">
+
+                            <div class="quick-action-icon">
+                                <i class="bi bi-clock-history"></i>
+                            </div>
+
+                            <div class="quick-action-text">
+                                My Sales History
+                            </div>
+
+                            <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                        </a>
+
+
+                        
+                        <!-- Product Lookup -->
+                        <a asp-controller="Products"
+                           asp-action="Index"
+                           class="quick-action">
+
+                            <div class="quick-action-icon">
+                                <i class="bi bi-search"></i>
+                            </div>
+
+                            <div class="quick-action-text">
+                                Product Lookup
+                            </div>
+
+                            <i class="bi bi-chevron-right quick-action-arrow"></i>
+
+                        </a>
+
+
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         STOCK ALERTS
+         ===================================================== -->
+
+    <div class="row g-4 mt-1">
+
+        <div class="col-12">
+
+            <div class="dashboard-card">
+
+                <div class="dashboard-card-header">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+
+                            <div class="dashboard-card-title">
+                                Stock Alerts
+                            </div>
+
+                            <p class="dashboard-card-subtitle">
+                                Products at or below their reorder level
+                            </p>
+
+                        </div>
+
+                        @if (isAdmin)
+                        {
+                            <a asp-controller="Purchases"
+                               asp-action="Index"
+                               class="btn btn-sm btn-outline-warning">
+
+                                <i class="bi bi-box-seam me-1"></i>
+                                Manage Inventory
+
+                            </a>
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <div class="dashboard-card-body">
+
+                    @if (Model.LowStockItems != null &&
+                         Model.LowStockItems.Any())
+                    {
+                        <div class="row">
+
+                            @foreach (var product in Model.LowStockItems)
+                            {
+                                var isOutOfStock = product.CurrentStock == 0;
+
+                                <div class="col-xl-4 col-md-6">
+
+                                    <div class="stock-item">
+
+                                        <div class="stock-icon @(isOutOfStock
+                                            ? "stock-icon-danger"
+                                            : "stock-icon-warning")">
+
+                                            <i class="bi @(isOutOfStock
+                                                ? "bi-x-circle"
+                                                : "bi-exclamation-triangle")"></i>
+
+                                        </div>
+
+                                        <div>
+
+                                            <div class="stock-name">
+                                                @product.Name
+                                            </div>
+
+                                            <span class="stock-sku">
+                                                @product.Sku
+                                            </span>
+
+                                        </div>
+
+                                        <div class="stock-count">
+
+                                            <div class="stock-current @(isOutOfStock
+                                                ? "text-danger"
+                                                : "text-warning")">
+
+                                                @product.CurrentStock
+
+                                            </div>
+
+                                            <div class="stock-limit">
+                                                Reorder: @product.ReorderLevel
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            }
+
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+
+                            <div class="empty-state-icon text-success">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+
+                            <p>
+                                All active products are sufficiently stocked.
+                            </p>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>

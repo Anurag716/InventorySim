@@ -1,0 +1,288 @@
+﻿@model Inventory.ViewModels.UserCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Cashier";
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- Page Header -->
+
+    <div class="d-flex flex-column flex-md-row
+                justify-content-between align-items-md-center
+                gap-3 mb-4">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="d-flex align-items-center justify-content-center
+                        bg-primary-subtle text-primary rounded-3"
+                 style="width: 52px; height: 52px;">
+
+                <i class="bi bi-person-plus fs-4"></i>
+
+            </div>
+
+            <div>
+
+                <h2 class="mb-1 fw-bold">
+                    Add Cashier
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Create a new Cashier account for Inventra.
+                </p>
+
+            </div>
+
+        </div>
+
+        <a asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            <i class="bi bi-arrow-left me-1"></i>
+            Back to Users
+
+        </a>
+
+    </div>
+
+
+    <!-- Validation Summary -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="alert alert-danger"
+         role="alert">
+    </div>
+
+
+    <!-- Create Form -->
+
+    <div class="card border-0 shadow-sm rounded-4">
+
+        <div class="card-body p-4">
+
+            <form asp-action="Create"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+
+                <!-- Account Information -->
+
+                <div class="mb-4">
+
+                    <h5 class="fw-semibold mb-1">
+                        Account Information
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        Enter the login details for the new Cashier.
+                    </p>
+
+                </div>
+
+
+                <div class="row g-4">
+
+                    <!-- Username -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Username"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="Username"
+                               class="form-control"
+                               placeholder="Enter username"
+                               autocomplete="username" />
+
+                        <span asp-validation-for="Username"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Email -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Email"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="Email"
+                               class="form-control"
+                               placeholder="Enter email address"
+                               autocomplete="email" />
+
+                        <span asp-validation-for="Email"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Full Name -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="FullName"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="FullName"
+                               class="form-control"
+                               placeholder="Enter full name"
+                               autocomplete="name" />
+
+                        <span asp-validation-for="FullName"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Phone -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Phone"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="Phone"
+                               class="form-control"
+                               placeholder="Enter phone number"
+                               autocomplete="tel" />
+
+                        <span asp-validation-for="Phone"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Password Section -->
+
+                <div class="mt-5 mb-4">
+
+                    <h5 class="fw-semibold mb-1">
+                        Login Password
+                    </h5>
+
+                    <p class="text-muted small mb-0">
+                        Set the initial password for this Cashier account.
+                    </p>
+
+                </div>
+
+
+                <div class="row g-4">
+
+                    <!-- Password -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="Password"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="Password"
+                               class="form-control"
+                               placeholder="Enter password"
+                               autocomplete="new-password" />
+
+                        <span asp-validation-for="Password"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+
+                    <!-- Confirm Password -->
+
+                    <div class="col-md-6">
+
+                        <label asp-for="ConfirmPassword"
+                               class="form-label fw-semibold">
+                        </label>
+
+                        <input asp-for="ConfirmPassword"
+                               class="form-control"
+                               placeholder="Confirm password"
+                               autocomplete="new-password" />
+
+                        <span asp-validation-for="ConfirmPassword"
+                              class="text-danger small">
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Role Information -->
+
+                <div class="alert alert-info d-flex align-items-start gap-3
+                            mt-4 mb-0">
+
+                    <i class="bi bi-info-circle fs-5"></i>
+
+                    <div>
+
+                        <div class="fw-semibold">
+                            Account Role
+                        </div>
+
+                        <div class="small">
+                            This account will automatically be created
+                            with the <strong>Cashier</strong> role.
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Form Actions -->
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+
+                    <a asp-action="Index"
+                       class="btn btn-outline-secondary">
+
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancel
+
+                    </a>
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="bi bi-person-plus me-1"></i>
+                        Create Cashier
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

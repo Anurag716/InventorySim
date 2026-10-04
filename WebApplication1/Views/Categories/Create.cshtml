@@ -1,57 +1,122 @@
 ﻿@model Inventory.Models.Category
 
 @{
-    ViewData["Title"] = "Create Category";
+ViewData["Title"] = "Create Category";
 }
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
 
-    <h2 class="mb-4">Create Category</h2>
 
-    <form asp-action="Create" method="post">
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
 
-        <div asp-validation-summary="ModelOnly"
-             class="text-danger mb-3">
+    <div>
+        <h2>Create Category</h2>
+        <p>Add a new category to organize your inventory.</p>
+    </div>
+
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Categories
+    </a>
+
+</div>
+
+<!-- Form Section -->
+<div class="row justify-content-center">
+
+    <div class="col-12 col-lg-9 col-xl-8">
+
+        <div class="inventra-form-section">
+
+            <div class="inventra-form-section-header">
+                <div>
+                    <h5 class="mb-1">
+                        Category Details
+                    </h5>
+
+                    <p class="text-muted mb-0">
+                        Provide the name and description for the new category.
+                    </p>
+                </div>
+            </div>
+
+            <div class="inventra-form-section-body">
+
+                <form asp-action="Create" method="post">
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
+
+                    <div class="row">
+
+                        <!-- Category Name -->
+                        <div class="col-12 col-md-7 mb-4">
+
+                            <label asp-for="Name"
+                                   class="form-label fw-semibold">
+                                Category Name
+                            </label>
+
+                            <input asp-for="Name"
+                                   class="form-control form-control-lg"
+                                   placeholder="Enter category name" />
+
+                            <span asp-validation-for="Name"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                        <!-- Description -->
+                        <div class="col-12 mb-4">
+
+                            <label asp-for="Description"
+                                   class="form-label fw-semibold">
+                                Description
+                            </label>
+
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="6"
+                                      placeholder="Describe what products belong to this category..."></textarea>
+
+                            <span asp-validation-for="Description"
+                                  class="text-danger small">
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="inventra-form-actions">
+
+                        <a asp-action="Index"
+                           class="btn btn-light border">
+                            <i class="bi bi-x-lg me-1"></i>
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary px-4">
+                            <i class="bi bi-check-lg me-1"></i>
+                            Save Category
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
         </div>
 
-        <div class="mb-3">
-            <label asp-for="Name" class="form-label">
-                Category Name
-            </label>
+    </div>
 
-            <input asp-for="Name"
-                   class="form-control" />
+</div>
 
-            <span asp-validation-for="Name"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Description" class="form-label">
-                Description
-            </label>
-
-            <textarea asp-for="Description"
-                      class="form-control"
-                      rows="4">
-            </textarea>
-
-            <span asp-validation-for="Description"
-                  class="text-danger">
-            </span>
-        </div>
-
-        <button type="submit"
-                class="btn btn-primary">
-            Save Category
-        </button>
-
-        <a asp-action="Index"
-           class="btn btn-secondary">
-            Cancel
-        </a>
-
-    </form>
 
 </div>

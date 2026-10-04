@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
 using OfficeOpenXml;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 ExcelPackage.License.SetNonCommercialPersonal("Anurag");
@@ -34,6 +33,7 @@ builder.Services.AddAuthentication(
         options.LoginPath = "/Account/Login";
         options.AccessDeniedPath = "/Account/AccessDenied";
     });
+
 // Add MVC services
 builder.Services.AddControllersWithViews();
 
@@ -58,7 +58,7 @@ app.MapStaticAssets();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
+    pattern: "{controller=Account}/{action=Index}/{id?}")
     .WithStaticAssets();
 
 app.Run();

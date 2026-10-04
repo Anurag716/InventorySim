@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class ProductsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -16,18 +16,51 @@ namespace Inventory.Controllers
             _context = context;
         }
 
-        // Display all products
-        public async Task<IActionResult> Index()
-        {
-            var products = await _context.Products
-                .Include(p => p.Category)
-                .Include(p => p.PreferredSupplier)
-                .ToListAsync();
+        // =========================================================
+        // PRODUCT LOOKUP
+        // Admin + Cashier
+        // =========================================================
 
-            return View(products);
+        // Display all products
+public async Task<IActionResult> Index()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                var products = await _context.Products
+                    .Include(p => p.Category)
+                    .Include(p => p.PreferredSupplier)
+                    .ToListAsync();
+
+                return View(products);
+            }
+
+            var cashierProducts = await _context.Products
+                .Include(p => p.Category)
+                .Select(p => new Product
+                {
+                    ProductId = p.ProductId,
+                    Sku = p.Sku,
+                    Name = p.Name,
+                    Description = p.Description,
+                    CategoryId = p.CategoryId,
+                    Category = p.Category,
+                    SellingPrice = p.SellingPrice,
+                    CurrentStock = p.CurrentStock,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt
+                })
+                .ToListAsync();
+            return View(cashierProducts);
         }
 
+
+        // =========================================================
+        // PRODUCT MANAGEMENT
+        // ADMIN ONLY
+        // =========================================================
+
         // Display Create Product form
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> Create()
         {
@@ -37,6 +70,7 @@ namespace Inventory.Controllers
         }
 
         // Create Product
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product)
@@ -72,7 +106,10 @@ namespace Inventory.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
         // Display Edit Product form
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -91,6 +128,7 @@ namespace Inventory.Controllers
         }
 
         // Edit Product
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Product product)
@@ -127,7 +165,8 @@ namespace Inventory.Controllers
             existingProduct.Name = product.Name;
             existingProduct.Description = product.Description;
             existingProduct.CategoryId = product.CategoryId;
-            existingProduct.PreferredSupplierId = product.PreferredSupplierId;
+            existingProduct.PreferredSupplierId =
+                product.PreferredSupplierId;
             existingProduct.PurchasePrice = product.PurchasePrice;
             existingProduct.SellingPrice = product.SellingPrice;
             existingProduct.ReorderLevel = product.ReorderLevel;
@@ -137,7 +176,10 @@ namespace Inventory.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+
         // Delete Product
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -155,7 +197,12 @@ namespace Inventory.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Load Category and Supplier dropdowns
+
+        // =========================================================
+        // DROPDOWNS
+        // =========================================================
+
+        // Only used by Admin create/edit pages
         private async Task LoadDropdowns()
         {
             ViewBag.Categories = new SelectList(

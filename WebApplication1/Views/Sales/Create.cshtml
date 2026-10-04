@@ -77,33 +77,51 @@
 }
 
 </style>
-<div class="container-fluid">
+<div class="container-fluid mt-4">
 
     <!-- Page Header -->
-    <div class="mb-4">
-        <h2 class="mb-1">New Sale</h2>
-        <p class="text-muted mb-0">
-            Create a new customer sale.
-        </p>
+    <div class="page-header">
+
+        <div>
+            <h2>New Sale</h2>
+            <p>
+                Create a new sale, manage products, and complete the transaction.
+            </p>
+        </div>
+
     </div>
 
 
     <div class="row g-4">
 
-        <!-- LEFT SIDE -->
-        <div class="col-lg-8">
+        <!-- ==========================================
+             LEFT SIDE - PRODUCTS & CART
+             ========================================== -->
+
+        <div class="col-12 col-xl-8">
+
 
             <!-- Customer & Product Selection -->
-            <div class="card shadow-sm mb-4">
+            <div class="inventra-form-section mb-4">
 
-                <div class="card-header bg-white">
-                    <h5 class="mb-0">
-                        <i class="bi bi-cart-plus"></i>
-                        Add Products
-                    </h5>
+                <div class="inventra-form-section-header">
+
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="bi bi-cart-plus me-2"></i>
+                            Add Products
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Select a customer and add products to the sale.
+                        </p>
+                    </div>
+
                 </div>
 
-                <div class="card-body">
+
+                <div class="inventra-form-section-body">
+
 
                     <!-- CUSTOMER -->
                     <div class="mb-4">
@@ -130,7 +148,7 @@
                                     id="addCustomerButton"
                                     class="btn btn-outline-primary text-nowrap">
 
-                                <i class="bi bi-person-plus"></i>
+                                <i class="bi bi-person-plus me-1"></i>
                                 Add Customer
 
                             </button>
@@ -143,7 +161,7 @@
                     <!-- PRODUCT SELECTION -->
                     <div class="row g-3 align-items-end">
 
-                        <div class="col-md-7">
+                        <div class="col-12 col-md-7">
 
                             <label class="form-label">
                                 Product
@@ -158,14 +176,14 @@
 
                                 @foreach (var product in Model.Products)
                                 {
-                                   <option value="@product.ProductId"
-        data-price="@product.PurchasePrice"
-        data-stock="@product.CurrentStock">
+                                    <option value="@product.ProductId"
+                                            data-price="@product.PurchasePrice"
+                                            data-stock="@product.CurrentStock">
 
-    @product.ProductName
-    (@product.Sku) - Stock: @product.CurrentStock
+                                        @product.ProductName
+                                        (@product.Sku) - Stock: @product.CurrentStock
 
-</option>
+                                    </option>
                                 }
 
                             </select>
@@ -173,7 +191,7 @@
                         </div>
 
 
-                        <div class="col-md-3">
+                        <div class="col-6 col-md-3">
 
                             <label class="form-label">
                                 Quantity
@@ -188,13 +206,13 @@
                         </div>
 
 
-                        <div class="col-md-2">
+                        <div class="col-6 col-md-2">
 
                             <button type="button"
                                     id="addProductButton"
                                     class="btn btn-primary w-100">
 
-                                <i class="bi bi-plus-lg"></i>
+                                <i class="bi bi-plus-lg me-1"></i>
                                 Add
 
                             </button>
@@ -209,19 +227,25 @@
 
 
             <!-- CART -->
-            <div class="card shadow-sm">
+            <div class="inventra-form-section">
 
-                <div class="card-header bg-white">
+                <div class="inventra-form-section-header">
 
-                    <h5 class="mb-0">
-                        <i class="bi bi-cart3"></i>
-                        Sale Items
-                    </h5>
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="bi bi-cart3 me-2"></i>
+                            Sale Items
+                        </h5>
+
+                        <p class="text-muted mb-0">
+                            Review the products and quantities included in this sale.
+                        </p>
+                    </div>
 
                 </div>
 
 
-                <div class="card-body p-0">
+                <div class="inventra-form-section-body p-0">
 
                     <div class="table-responsive">
 
@@ -286,29 +310,37 @@
         </div>
 
 
-        <!-- RIGHT SIDE -->
-        <div class="col-lg-4">
+        <!-- ==========================================
+             RIGHT SIDE - SALE SUMMARY
+             ========================================== -->
 
-            <div class="card shadow-sm">
+        <div class="col-12 col-xl-4">
 
-                <div class="card-header bg-white">
+            <div class="inventra-sale-summary">
 
-                    <h5 class="mb-0">
+                <div class="inventra-sale-summary-header">
 
-                        <i class="bi bi-receipt"></i>
-                        Sale Summary
+                    <div>
+                        <h5 class="mb-1">
+                            <i class="bi bi-receipt me-2"></i>
+                            Sale Summary
+                        </h5>
 
-                    </h5>
+                        <p class="mb-0">
+                            Review charges before completing the sale.
+                        </p>
+                    </div>
 
                 </div>
 
 
-                <div class="card-body">
+                <div class="inventra-sale-summary-body">
+
 
                     <!-- SUBTOTAL -->
-                    <div class="d-flex justify-content-between mb-3">
+                    <div class="d-flex justify-content-between mb-4">
 
-                        <span>
+                        <span class="text-muted">
                             Subtotal
                         </span>
 
@@ -320,18 +352,15 @@
 
 
                     <!-- DISCOUNT -->
-                    <div class="mb-3">
+                    <div class="mb-4">
 
                         <label asp-for="DiscountPercentage"
                                class="form-label">
-
                             Discount
-
                         </label>
 
                         <div class="row g-2">
 
-                            <!-- Percentage -->
                             <div class="col-5">
 
                                 <div class="input-group">
@@ -354,7 +383,6 @@
                             </div>
 
 
-                            <!-- Calculated Amount -->
                             <div class="col-7">
 
                                 <div class="input-group">
@@ -383,18 +411,15 @@
 
 
                     <!-- TAX -->
-                    <div class="mb-3">
+                    <div class="mb-4">
 
                         <label asp-for="TaxPercentage"
                                class="form-label">
-
                             Tax
-
                         </label>
 
                         <div class="row g-2">
 
-                            <!-- Percentage -->
                             <div class="col-5">
 
                                 <div class="input-group">
@@ -417,7 +442,6 @@
                             </div>
 
 
-                            <!-- Calculated Amount -->
                             <div class="col-7">
 
                                 <div class="input-group">
@@ -445,21 +469,18 @@
                     </div>
 
 
-                    <hr />
+                    <hr class="my-4" />
 
 
                     <!-- GRAND TOTAL -->
-                    <div class="d-flex justify-content-between mb-4">
+                    <div class="inventra-sale-grand-total">
 
-                        <span class="fs-5">
+                        <span>
                             Grand Total
                         </span>
 
-                        <strong class="fs-4"
-                                id="grandTotalAmount">
-
+                        <strong id="grandTotalAmount">
                             ₹0.00
-
                         </strong>
 
                     </div>
@@ -468,9 +489,9 @@
                     <!-- COMPLETE SALE -->
                     <button type="button"
                             id="completeSaleButton"
-                            class="btn btn-success btn-lg w-100">
+                            class="btn btn-success btn-lg w-100 mt-4">
 
-                        <i class="bi bi-check-circle"></i>
+                        <i class="bi bi-check-circle me-1"></i>
                         Complete Sale
 
                     </button>
@@ -484,6 +505,7 @@
     </div>
 
 </div>
+
 @Html.AntiForgeryToken()
 <!-- Sale Processing Overlay -->
 <div id="saleProcessingOverlay"

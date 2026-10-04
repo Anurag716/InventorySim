@@ -1,31 +1,613 @@
+
+/* =========================================================
+   INVENTRA - GLOBAL STYLES
+   ========================================================= */
+/* ---------------------------------------------------------
+   Base
+   --------------------------------------------------------- */
 html {
-  font-size: 14px;
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+    html {
+        font-size: 16px;
+    }
 }
 
 body {
-  margin-bottom: 60px;
+    margin: 0;
+    margin-bottom: 60px;
+    background-color: #f8f9fa;
+    color: #212529; 
+    font-family: "Inter", sans-serif;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+
+/* ---------------------------------------------------------
+   Inventra Theme Variables
+   --------------------------------------------------------- */
+
+:root {
+    --inventra-primary: #0d6efd;
+    --inventra-primary-dark: #0b5ed7;
+    --inventra-primary-light: #eaf2ff;
+    --inventra-success: #198754;
+    --inventra-warning: #ffc107;
+    --inventra-danger: #dc3545;
+    --inventra-dark: #212529;
+    --inventra-muted: #6c757d;
+    --inventra-border: #dee2e6;
+    --inventra-background: #f8f9fa;
+    --inventra-card-radius: 12px;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+
+/* ---------------------------------------------------------
+   Navbar
+   --------------------------------------------------------- */
+
+.navbar {
+    min-height: 64px;
+}
+
+.navbar-brand {
+    font-size: 1.35rem;
+    letter-spacing: 0.3px;
+}
+
+.navbar .nav-link {
+    transition: background-color 0.2s ease, color 0.2s ease;
+    border-radius: 6px;
+    margin: 0 2px;
+}
+
+    .navbar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+
+/* ---------------------------------------------------------
+   Buttons
+   --------------------------------------------------------- */
+
+.btn {
+    border-radius: 7px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: var(--inventra-primary);
+    border-color: var(--inventra-primary);
+}
+
+    .btn-primary:hover {
+        background-color: var(--inventra-primary-dark);
+        border-color: var(--inventra-primary-dark);
+        transform: translateY(-1px);
+    }
+
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+}
+
+
+/* ---------------------------------------------------------
+   Cards
+   --------------------------------------------------------- */
+
+.card {
+    border-radius: var(--inventra-card-radius);
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------
+   Forms
+   --------------------------------------------------------- */
+
+.form-control,
+.form-select {
+    border-radius: 7px;
+    border-color: var(--inventra-border);
+    min-height: 42px;
+}
+
+    .form-control:focus,
+    .form-select:focus,
+    .form-check-input:focus {
+        border-color: var(--inventra-primary);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+
+.input-group-text {
+    border-color: var(--inventra-border);
+}
+
+
+/* ---------------------------------------------------------
+   Tables
+   --------------------------------------------------------- */
+
+.table {
+    background-color: #ffffff;
+}
+
+    .table thead th {
+        font-weight: 600;
+        white-space: nowrap;
+        vertical-align: middle;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+    }
+
+.table-hover tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f8ff;
+    }
+
+
+/* ---------------------------------------------------------
+   Badges
+   --------------------------------------------------------- */
+
+.badge {
+    font-weight: 500;
+    padding: 0.45em 0.7em;
+    border-radius: 6px;
+}
+
+
+/* ---------------------------------------------------------
+   Alerts
+   --------------------------------------------------------- */
+
+.alert {
+    border-radius: 8px;
+}
+
+
+/* ---------------------------------------------------------
+   Page headings
+   --------------------------------------------------------- */
+
+.page-title {
+    font-weight: 700;
+    color: var(--inventra-dark);
+}
+
+.page-subtitle {
+    color: var(--inventra-muted);
+}
+
+
+/* ---------------------------------------------------------
+   Dashboard / Statistic Cards
+   --------------------------------------------------------- */
+
+.dashboard-card {
+    border: none;
+    border-radius: var(--inventra-card-radius);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    }
+
+    .dashboard-card .icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+        font-size: 1.4rem;
+    }
+
+
+/* ---------------------------------------------------------
+   Inventory Status
+   --------------------------------------------------------- */
+
+.stock-low {
+    color: var(--inventra-danger);
+    font-weight: 600;
+}
+
+.stock-good {
+    color: var(--inventra-success);
+    font-weight: 600;
+}
+
+
+/* ---------------------------------------------------------
+   Modals
+   --------------------------------------------------------- */
+
+.modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--inventra-border);
+}
+
+.modal-footer {
+    border-top: 1px solid var(--inventra-border);
+}
+
+
+/* ---------------------------------------------------------
+   Landing / Hero
+   --------------------------------------------------------- */
+
+.hero-section {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-title {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.hero-subtitle {
+    color: var(--inventra-muted);
+    max-width: 650px;
+}
+
+
+/* ---------------------------------------------------------
+   Login
+   --------------------------------------------------------- */
+
+.login-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1);
+}
+
+
+/* ---------------------------------------------------------
+   Loading / Processing
+   --------------------------------------------------------- */
+
+.processing-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+
+/* ---------------------------------------------------------
+   Footer
+   --------------------------------------------------------- */
+
+.footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    min-height: 50px;
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+}
+
+
+/* ---------------------------------------------------------
+   Focus Accessibility
+   --------------------------------------------------------- */
+
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.nav-link:focus-visible {
+    outline: 2px solid var(--inventra-primary);
+    outline-offset: 2px;
+}
+
+
+/* ---------------------------------------------------------
+   Responsive Improvements
+   --------------------------------------------------------- */
+
+@media (max-width: 767.98px) {
+
+    .table-responsive {
+        border-radius: 8px;
+    }
+
+    .btn {
+        min-height: 40px;
+    }
+
+    .hero-section {
+        min-height: auto;
+        padding-top: 3rem;
+        padding-bottom: 3rem;
+    }
+
+    .page-title {
+        font-size: 1.7rem;
+    }
+}
+/* Rounded table outer border */
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--inventra-border);
+}
+
+    .table thead th:first-child {
+        border-top-left-radius: 10px;
+    }
+
+    .table thead th:last-child {
+        border-top-right-radius: 10px;
+    }
+
+    .table tbody tr:last-child td:first-child {
+        border-bottom-left-radius: 10px;
+    }
+
+    .table tbody tr:last-child td:last-child {
+        border-bottom-right-radius: 10px;
+    }
+/* =========================================================
+   INVENTRA - NAVBAR ENHANCEMENTS
+   ========================================================= */
+
+.inventra-navbar {
+    min-height: 64px;
+}
+
+.inventra-brand {
+    font-size: 1.4rem;
+    letter-spacing: 0.4px;
+}
+
+.inventra-navbar .nav-link {
+    padding: 0.55rem 0.75rem;
+    border-radius: 7px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .inventra-navbar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+.inventra-navbar .dropdown-menu {
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem;
+    min-width: 210px;
+}
+
+.inventra-navbar .dropdown-item {
+    border-radius: 7px;
+    padding: 0.55rem 0.75rem;
+    transition: background-color 0.15s ease;
+}
+
+    .inventra-navbar .dropdown-item:hover {
+        background-color: var(--inventra-primary-light);
+    }
+
+.user-menu-button {
+    border: none;
+    padding: 0.45rem 0.65rem;
+    border-radius: 8px;
+}
+
+    .user-menu-button:hover,
+    .user-menu-button:focus {
+        background-color: #343a40;
+    }
+
+    .user-menu-button::after {
+        margin-left: 0.5rem;
+    }
+
+@media (max-width: 991.98px) {
+
+    .inventra-navbar .dropdown-menu {
+        box-shadow: none !important;
+        background-color: #343a40;
+    }
+
+    .inventra-navbar .dropdown-item {
+        color: #f8f9fa;
+    }
+
+        .inventra-navbar .dropdown-item:hover {
+            color: #212529;
+        }
+
+    .user-menu-button {
+        width: 100%;
+        text-align: left;
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+}
+/* =========================================================
+   INVENTRA - PAGE HEADERS
+   ========================================================= */
+
+.page-header {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+    .page-header h1,
+    .page-header h2 {
+        margin-bottom: 0.25rem;
+        font-weight: 700;
+        letter-spacing: -0.3px;
+    }
+
+    .page-header p {
+        margin-bottom: 0;
+        color: var(--inventra-muted);
+        font-size: 0.95rem;
+    }
+
+   /* Form */
+.inventra-form-section {
+    background: #ffffff;
+    border: 1px solid var(--inventra-border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.inventra-form-section-header {
+    padding: 1.25rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--inventra-border);
+}
+
+    .inventra-form-section-header h5 {
+        font-weight: 700;
+    }
+
+.inventra-form-section-body {
+    padding: 1.5rem;
+}
+
+.inventra-form-section .form-control {
+    border-radius: 8px;
+}
+
+    .inventra-form-section .form-control:focus {
+        border-color: var(--inventra-primary);
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.1);
+    }
+
+.inventra-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--inventra-border);
+}
+
+/* Purchase form */
+
+.inventra-purchase-item {
+    background-color: #f8f9fa;
+    border: 1px solid var(--inventra-border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+    .inventra-purchase-item .form-control,
+    .inventra-purchase-item .form-select {
+        border-radius: 8px;
+    }
+
+    .inventra-purchase-item .input-group-text {
+        background-color: #fff;
+        border-radius: 8px 0 0 8px;
+    }
+
+.purchase-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background-color: var(--inventra-primary-light);
+    border: 1px solid #cfe2ff;
+    border-radius: 10px;
+}
+
+.purchase-total-amount {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--inventra-primary-dark);
+}
+
+/* ==========================================
+   Inventra POS
+   ========================================== */
+
+.inventra-sale-summary {
+    background: #ffffff;
+    border: 1px solid var(--inventra-border);
+    border-radius: 12px;
+    overflow: hidden;
+    position: sticky;
+    top: 1rem;
+}
+
+.inventra-sale-summary-header {
+    padding: 1.25rem 1.5rem;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--inventra-border);
+}
+
+    .inventra-sale-summary-header h5 {
+        font-weight: 700;
+    }
+
+    .inventra-sale-summary-header p {
+        color: var(--inventra-muted);
+        font-size: 0.85rem;
+    }
+
+.inventra-sale-summary-body {
+    padding: 1.5rem;
+}
+
+.inventra-sale-summary .form-control,
+.inventra-sale-summary .input-group-text {
+    border-radius: 8px;
+}
+
+.inventra-sale-grand-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background-color: var(--inventra-primary-light);
+    border: 1px solid #cfe2ff;
+    border-radius: 10px;
+}
+
+    .inventra-sale-grand-total span {
+        font-size: 1.05rem;
+        font-weight: 600;
+    }
+
+    .inventra-sale-grand-total strong {
+        font-size: 1.5rem;
+        color: var(--inventra-primary-dark);
+    }
+
+@media (max-width: 1199.98px) {
+    .inventra-sale-summary {
+        position: static;
+    }
 }

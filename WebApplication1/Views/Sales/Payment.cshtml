@@ -9,14 +9,55 @@
 
 <div class="container py-4">
 
-    <!-- Header -->
-    <div class="mb-4">
-        <h2 class="mb-1">Payment</h2>
-        <p class="text-muted mb-0">
-            Complete payment for sale
-            <strong>@sale?.SaleNumber</strong>
-        </p>
+   <!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 mt-4">
+
+    <div class="d-flex align-items-center gap-3">
+
+        <div class="d-flex align-items-center justify-content-center
+                    bg-success-subtle text-success rounded-3"
+             style="width: 52px; height: 52px;">
+
+            <i class="bi bi-credit-card fs-4"></i>
+
+        </div>
+
+        <div>
+
+            <h2 class="mb-1 fw-bold">
+                Payment
+            </h2>
+
+            <p class="text-muted mb-0">
+                Complete payment for sale
+
+                <strong class="text-dark">
+                    @sale?.SaleNumber
+                </strong>
+
+                @if (sale?.Customer != null)
+                {
+                    <span class="mx-1">•</span>
+
+                    <span>
+                        @sale.Customer.Name
+                    </span>
+                }
+                else
+                {
+                    <span class="mx-1">•</span>
+
+                    <span>
+                        Walk-in Customer
+                    </span>
+                }
+            </p>
+
+        </div>
+
     </div>
+
+</div>
 
 
     <div class="row g-4">

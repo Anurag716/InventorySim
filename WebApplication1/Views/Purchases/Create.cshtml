@@ -13,211 +13,274 @@
     });
 }
 
-<div class="container mt-4">
-
-    <h2 class="mb-4">Create Purchase</h2>
-
-    <form asp-action="Create"
-          method="post"
-          id="purchaseForm">
-
-        @Html.AntiForgeryToken()
-
-        <div asp-validation-summary="ModelOnly"
-             class="text-danger mb-3">
-        </div>
-
-        <!-- Supplier -->
-        <div class="mb-3">
-
-            <label asp-for="SupplierId"
-                   class="form-label">
-                Supplier
-            </label>
-
-            <select asp-for="SupplierId"
-                    asp-items="Model.Suppliers"
-                    class="form-select">
-
-                <option value="">
-                    -- Select Supplier --
-                </option>
-
-            </select>
-
-            <span asp-validation-for="SupplierId"
-                  class="text-danger">
-            </span>
-
-        </div>
+<div class="container-fluid mt-4">
 
 
-        <!-- Purchase Date -->
-        <div class="mb-3">
+<!-- Page Header -->
+<div class="page-header d-flex justify-content-between align-items-center">
 
-            <label asp-for="PurchaseDate"
-                   class="form-label">
-                Purchase Date
-            </label>
+    <div>
+        <h2>Create Purchase</h2>
+        <p>Record a supplier purchase and add the received products to inventory.</p>
+    </div>
 
-            <input asp-for="PurchaseDate"
-                   type="date"
-                   class="form-control" />
+    <a asp-action="Index"
+       class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>
+        Back to Purchases
+    </a>
 
-            <span asp-validation-for="PurchaseDate"
-                  class="text-danger">
-            </span>
+</div>
 
-        </div>
+<!-- Purchase Form -->
+<div class="row justify-content-center">
 
+    <div class="col-12 col-xl-10">
 
-        <hr />
+        <div class="inventra-form-section">
 
+            <!-- Purchase Information -->
+            <div class="inventra-form-section-header">
+                <h5 class="mb-1">Purchase Information</h5>
+                <p class="text-muted mb-0">
+                    Select the supplier and purchase date.
+                </p>
+            </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="inventra-form-section-body">
 
-            <h4>Purchase Items</h4>
+                <form asp-action="Create"
+                      method="post"
+                      id="purchaseForm">
 
-            <button type="button"
-                    id="addItemButton"
-                    class="btn btn-primary">
+                    @Html.AntiForgeryToken()
 
-                Add Product
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger">
+                    </div>
 
-            </button>
+                    <div class="row">
 
-        </div>
+                        <!-- Supplier -->
+                        <div class="col-12 col-md-6 mb-3">
 
+                            <label asp-for="SupplierId"
+                                   class="form-label fw-semibold">
+                                Supplier
+                            </label>
 
-        <!-- Product rows -->
-        <div id="itemsContainer">
+                            <select asp-for="SupplierId"
+                                    asp-items="Model.Suppliers"
+                                    class="form-select">
 
-            @if (Model.Items != null && Model.Items.Count > 0)
-            {
-                for (int i = 0; i < Model.Items.Count; i++)
-                {
-                    <div class="purchase-item border rounded p-3 mb-3">
+                                <option value="">
+                                    -- Select Supplier --
+                                </option>
 
-                        <div class="row">
+                            </select>
 
-                            <!-- Product -->
-                            <div class="col-md-5 mb-3">
+                            <span asp-validation-for="SupplierId"
+                                  class="text-danger small">
+                            </span>
 
-                                <label class="form-label">
-                                    Product
-                                </label>
+                        </div>
 
-                                <select name="Items[@i].ProductId"
-                                        class="form-select product-select">
+                        <!-- Purchase Date -->
+                        <div class="col-12 col-md-6 mb-3">
 
-                                    <option value="">
-                                        -- Select Product --
-                                    </option>
+                            <label asp-for="PurchaseDate"
+                                   class="form-label fw-semibold">
+                                Purchase Date
+                            </label>
 
-                                    @foreach (var product in Model.Products)
-                                    {
-                                        <option value="@product.ProductId"
-                                                data-purchase-price="@product.PurchasePrice"
-                                                selected="@(product.ProductId == Model.Items[i].ProductId)">
+                            <input asp-for="PurchaseDate"
+                                   type="date"
+                                   class="form-control" />
 
-                                            @product.ProductName (@product.Sku)
-
-                                        </option>
-                                    }
-
-                                </select>
-
-                            </div>
-
-
-                            <!-- Quantity -->
-                            <div class="col-md-2 mb-3">
-
-                                <label class="form-label">
-                                    Quantity
-                                </label>
-
-                                <input type="number"
-                                       name="Items[@i].Quantity"
-                                       value="@Model.Items[i].Quantity"
-                                       min="1"
-                                       class="form-control quantity-input" />
-
-                            </div>
-
-
-                            <!-- Unit Price -->
-                            <div class="col-md-3 mb-3">
-
-                                <label class="form-label">
-                                    Unit Price
-                                </label>
-
-                                <input type="number"
-                                       name="Items[@i].UnitPrice"
-                                       value="@Model.Items[i].UnitPrice"
-                                       min="0.01"
-                                       step="0.01"
-                                       class="form-control price-input" />
-
-                                <small class="text-muted">
-                                    Automatically filled from product purchase price.
-                                    You can change it if needed.
-                                </small>
-
-                            </div>
-
-
-                            <!-- Remove -->
-                            <div class="col-md-2 mb-3 d-flex align-items-end">
-
-                                <button type="button"
-                                        class="btn btn-danger remove-item w-100">
-
-                                    Remove
-
-                                </button>
-
-                            </div>
+                            <span asp-validation-for="PurchaseDate"
+                                  class="text-danger small">
+                            </span>
 
                         </div>
 
                     </div>
-                }
-            }
+
+                    <hr class="my-4">
+
+                    <!-- Purchase Items Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <div>
+                            <h5 class="fw-semibold mb-1">
+                                Purchase Items
+                            </h5>
+
+                            <p class="text-muted mb-0 small">
+                                Add the products and quantities received from the supplier.
+                            </p>
+                        </div>
+
+                        <button type="button"
+                                id="addItemButton"
+                                class="btn btn-primary">
+
+                            <i class="bi bi-plus-lg me-1"></i>
+                            Add Product
+
+                        </button>
+
+                    </div>
+
+                    <!-- Product Rows -->
+                    <div id="itemsContainer">
+
+                        @if (Model.Items != null && Model.Items.Count > 0)
+                        {
+                            for (int i = 0; i < Model.Items.Count; i++)
+                            {
+                                <div class="purchase-item inventra-purchase-item">
+
+                                    <div class="row align-items-end">
+
+                                        <!-- Product -->
+                                        <div class="col-12 col-md-5 mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Product
+                                            </label>
+
+                                            <select name="Items[@i].ProductId"
+                                                    class="form-select product-select">
+
+                                                <option value="">
+                                                    -- Select Product --
+                                                </option>
+
+                                                @foreach (var product in Model.Products)
+                                                {
+                                                    <option value="@product.ProductId"
+                                                            data-purchase-price="@product.PurchasePrice"
+                                                            selected="@(product.ProductId == Model.Items[i].ProductId)">
+
+                                                        @product.ProductName (@product.Sku)
+
+                                                    </option>
+                                                }
+
+                                            </select>
+
+                                        </div>
+
+                                        <!-- Quantity -->
+                                        <div class="col-12 col-sm-6 col-md-2 mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Quantity
+                                            </label>
+
+                                            <input type="number"
+                                                   name="Items[@i].Quantity"
+                                                   value="@Model.Items[i].Quantity"
+                                                   min="1"
+                                                   class="form-control quantity-input" />
+
+                                        </div>
+
+                                        <!-- Unit Price -->
+                                        <div class="col-12 col-sm-6 col-md-3 mb-3">
+
+                                            <label class="form-label fw-semibold">
+                                                Unit Price
+                                            </label>
+
+                                            <div class="input-group">
+
+                                                <span class="input-group-text">
+                                                    ₹
+                                                </span>
+
+                                                <input type="number"
+                                                       name="Items[@i].UnitPrice"
+                                                       value="@Model.Items[i].UnitPrice"
+                                                       min="0.01"
+                                                       step="0.01"
+                                                       class="form-control price-input" />
+
+                                            </div>
+
+                                            <small class="text-muted">
+                                                Filled from purchase price.
+                                            </small>
+
+                                        </div>
+
+                                        <!-- Remove -->
+                                        <div class="col-12 col-md-2 mb-3">
+
+                                            <button type="button"
+                                                    class="btn btn-outline-danger remove-item w-100">
+
+                                                <i class="bi bi-trash me-1"></i>
+                                                Remove
+
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+                            }
+                        }
+
+                    </div>
+
+                    <!-- Total -->
+                    <div class="purchase-total">
+
+                        <div>
+                            <span class="text-muted">
+                                Purchase Total
+                            </span>
+                        </div>
+
+                        <div class="purchase-total-amount">
+                            ₹<span id="grandTotal">0.00</span>
+                        </div>
+
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="inventra-form-actions">
+
+                        <a asp-action="Index"
+                           class="btn btn-light border">
+                            <i class="bi bi-x-lg me-1"></i>
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-success px-4">
+
+                            <i class="bi bi-check-lg me-1"></i>
+                            Save Purchase
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
 
         </div>
 
-
-        <!-- Total -->
-        <div class="mb-4">
-
-            <h5>
-                Total:
-                ₹<span id="grandTotal">0.00</span>
-            </h5>
-
-        </div>
-
-
-        <button type="submit"
-                class="btn btn-success">
-
-            Save Purchase
-
-        </button>
-
-        <a asp-action="Index"
-           class="btn btn-secondary">
-
-            Cancel
-
-        </a>
-
-    </form>
+    </div>
 
 </div>
 
+
+</div>
 
 <script>
 
@@ -598,4 +661,4 @@
     // Calculate initial total.
     updateTotal();
 
-</script>x
+</script>
