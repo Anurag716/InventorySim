@@ -11,7 +11,7 @@ namespace Inventory.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-    public PurchasesController(ApplicationDbContext context)
+        public PurchasesController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -68,64 +68,61 @@ namespace Inventory.Controllers
         // Create Purchase
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(
-            PurchaseCreateViewModel model)
+        public async Task<IActionResult> Create(PurchaseCreateViewModel model)
         {
-            // At least one product must be added
-            if (model.Items == null || model.Items.Count == 0)
+            // Validate the item collection once, then use the validated local variable.
+            var items = model.Items;
+
+            if (items == null || items.Count == 0)
             {
                 ModelState.AddModelError(
-                    "",
+                    string.Empty,
                     "Please add at least one product to the purchase.");
+
+                await LoadDropdowns(model);
+                return View(model);
             }
 
-            // Check for duplicate products
-            if (model.Items != null && model.Items.Count > 0)
-            {
-                var duplicateProducts = model.Items
-                    .GroupBy(i => i.ProductId)
-                    .Any(g => g.Count() > 1);
+            // Check for duplicate products.
+            var duplicateProducts = items
+                .GroupBy(i => i.ProductId)
+                .Any(g => g.Count() > 1);
 
-                if (duplicateProducts)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        "The same product cannot be added more than once.");
-                }
+            if (duplicateProducts)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "The same product cannot be added more than once.");
             }
 
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(model);
-
                 return View(model);
             }
 
-            // Generate purchase number
-            var purchaseNumber = "PUR-" +
-                DateTime.Now.ToString("yyyyMMddHHmmss");
+            // Generate purchase number.
+            var purchaseNumber = "PUR-" + DateTime.Now.ToString("yyyyMMddHHmmss");
 
-            // Calculate total amount on server
+            // Calculate the total on the server.
             decimal totalAmount = 0;
 
-            foreach (var item in model.Items)
+            foreach (var item in items)
             {
-                totalAmount +=
-                    item.Quantity * item.UnitPrice;
+                totalAmount += item.Quantity * item.UnitPrice;
             }
 
-            // Get logged-in user's ID
+            // Get the logged-in user's ID.
             var userIdClaim = User.FindFirst(
                 System.Security.Claims.ClaimTypes.NameIdentifier);
 
-            if (userIdClaim == null)
+            if (userIdClaim == null ||
+                !int.TryParse(userIdClaim.Value, out var createdByUserId))
             {
                 return Unauthorized();
             }
 
-            var createdByUserId = int.Parse(userIdClaim.Value);
-
-            // Create Purchase
+            // Create the purchase.
             var purchase = new Purchase
             {
                 PurchaseNumber = purchaseNumber,
@@ -137,8 +134,8 @@ namespace Inventory.Controllers
                 CreatedAt = DateTime.Now
             };
 
-            // Create Purchase Items
-            foreach (var item in model.Items)
+            // Create purchase items.
+            foreach (var item in items)
             {
                 var purchaseItem = new Purchaseitem
                 {
@@ -146,15 +143,13 @@ namespace Inventory.Controllers
                     ProductId = item.ProductId,
                     Quantity = item.Quantity,
                     UnitPrice = item.UnitPrice,
-                    Subtotal =
-                        item.Quantity * item.UnitPrice
+                    Subtotal = item.Quantity * item.UnitPrice
                 };
 
                 purchase.Purchaseitems.Add(purchaseItem);
             }
 
             _context.Purchases.Add(purchase);
-
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
@@ -215,36 +210,36 @@ namespace Inventory.Controllers
         // Save edited Purchase
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(
-            PurchaseEditViewModel model)
+        public async Task<IActionResult> Edit(PurchaseEditViewModel model)
         {
-            // At least one product must remain
-            if (model.Items == null || model.Items.Count == 0)
+            // Validate the item collection once, then use the validated local variable.
+            var items = model.Items;
+
+            if (items == null || items.Count == 0)
             {
                 ModelState.AddModelError(
-                    "",
+                    string.Empty,
                     "Please keep at least one product in the purchase.");
+
+                await LoadDropdowns(model);
+                return View(model);
             }
 
-            // Check for duplicate products
-            if (model.Items != null && model.Items.Count > 0)
-            {
-                var duplicateProducts = model.Items
-                    .GroupBy(i => i.ProductId)
-                    .Any(g => g.Count() > 1);
+            // Check for duplicate products.
+            var duplicateProducts = items
+                .GroupBy(i => i.ProductId)
+                .Any(g => g.Count() > 1);
 
-                if (duplicateProducts)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        "The same product cannot be added more than once.");
-                }
+            if (duplicateProducts)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "The same product cannot be added more than once.");
             }
 
             if (!ModelState.IsValid)
             {
                 await LoadDropdowns(model);
-
                 return View(model);
             }
 
@@ -257,7 +252,7 @@ namespace Inventory.Controllers
                 return NotFound();
             }
 
-            // Prevent editing a completed purchase
+            // Completed purchases cannot be edited.
             if (purchase.Status != "Draft")
             {
                 TempData["ErrorMessage"] =
@@ -266,21 +261,20 @@ namespace Inventory.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Update purchase information
+            // Update purchase information.
             purchase.SupplierId = model.SupplierId;
             purchase.PurchaseDate = model.PurchaseDate;
             purchase.UpdatedAt = DateTime.Now;
 
-            // IDs of items that still exist after editing
-            var submittedItemIds = model.Items!
-    .Where(i => i.PurchaseItemId > 0)
-    .Select(i => i.PurchaseItemId)
-    .ToHashSet();
+            // IDs of items that remain after editing.
+            var submittedItemIds = items
+                .Where(i => i.PurchaseItemId > 0)
+                .Select(i => i.PurchaseItemId)
+                .ToHashSet();
 
-            // Remove purchase items that were deleted from the form
+            // Remove purchase items deleted from the form.
             var itemsToRemove = purchase.Purchaseitems
-                .Where(pi =>
-                    !submittedItemIds.Contains(pi.PurchaseItemId))
+                .Where(pi => !submittedItemIds.Contains(pi.PurchaseItemId))
                 .ToList();
 
             foreach (var item in itemsToRemove)
@@ -288,33 +282,29 @@ namespace Inventory.Controllers
                 _context.Purchaseitems.Remove(item);
             }
 
-            // Update existing items and add new items
-            foreach (var item in model.Items)
+            // Update existing items and add new items.
+            foreach (var item in items)
             {
                 if (item.PurchaseItemId > 0)
                 {
-                    var existingItem =
-                        purchase.Purchaseitems
-                            .FirstOrDefault(pi =>
-                                pi.PurchaseItemId ==
-                                item.PurchaseItemId);
+                    var existingItem = purchase.Purchaseitems
+                        .FirstOrDefault(pi =>
+                            pi.PurchaseItemId == item.PurchaseItemId);
 
                     if (existingItem == null)
                     {
                         ModelState.AddModelError(
-                            "",
+                            string.Empty,
                             "One of the purchase items could not be found.");
 
                         await LoadDropdowns(model);
-
                         return View(model);
                     }
 
                     existingItem.ProductId = item.ProductId;
                     existingItem.Quantity = item.Quantity;
                     existingItem.UnitPrice = item.UnitPrice;
-                    existingItem.Subtotal =
-                        item.Quantity * item.UnitPrice;
+                    existingItem.Subtotal = item.Quantity * item.UnitPrice;
                 }
                 else
                 {
@@ -324,29 +314,26 @@ namespace Inventory.Controllers
                         ProductId = item.ProductId,
                         Quantity = item.Quantity,
                         UnitPrice = item.UnitPrice,
-                        Subtotal =
-                            item.Quantity * item.UnitPrice
+                        Subtotal = item.Quantity * item.UnitPrice
                     };
 
                     _context.Purchaseitems.Add(newItem);
                 }
             }
 
-            // Calculate total on the server
+            // Calculate the total on the server.
             decimal totalAmount = 0;
 
-            foreach (var item in model.Items)
+            foreach (var item in items)
             {
-                totalAmount +=
-                    item.Quantity * item.UnitPrice;
+                totalAmount += item.Quantity * item.UnitPrice;
             }
 
             purchase.TotalAmount = totalAmount;
 
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] =
-                "Purchase updated successfully.";
+            TempData["SuccessMessage"] = "Purchase updated successfully.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -406,6 +393,12 @@ namespace Inventory.Controllers
                 foreach (var item in purchase.Purchaseitems)
                 {
                     var product = item.Product;
+
+                    if (product == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Product information is missing for purchase item {item.PurchaseItemId}.");
+                    }
 
                     // Increase current stock
                     product.CurrentStock += item.Quantity;

@@ -11,6 +11,7 @@ ExcelPackage.License.SetNonCommercialPersonal("Anurag");
 
 QuestPDF.Settings.License = LicenseType.Community;
 
+
 // Get database connection string
 var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection");
